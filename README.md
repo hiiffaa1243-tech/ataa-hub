@@ -1,32 +1,35 @@
-# Ataa Hub — real-time donations for nonprofits, built on Frappe
+# Ataa Hub — donations, memberships and governed spending on ERPNext
 
-[![CI](https://img.shields.io/badge/tests-bench%20run--tests-0f766e)](.github/workflows/ci.yml)
-![Frappe](https://img.shields.io/badge/Frappe-v15-blue)
-![Python](https://img.shields.io/badge/Python-3.11-blue)
+[![CI](https://github.com/hiiffaa1243-tech/ataa-hub/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
+![ERPNext](https://img.shields.io/badge/ERPNext-v16-blue)
+![Python](https://img.shields.io/badge/Python-3.14-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-> **The problem.** Many associations receive their online-store donations as *monthly Excel files*, one per project, reconciled by hand. Project managers don't know their real balance, the executive director approves spending over WhatsApp, and the accountant matches bank, store and POS by hand.
+> **The problem.** Many Saudi associations receive their online-store donations as *monthly Excel files*, one per project, reconciled by hand. Project managers don't know their real balance, the executive director approves spending over WhatsApp, members pay by bank transfer and forget, and the accountant matches bank, store and POS by hand.
 >
-> **The fix.** A custom Frappe app that receives donations **the moment they happen** from any channel, books each one to its project, updates balances instantly, and runs disbursements through an audited approval workflow.
+> **The fix.** A custom Frappe app on top of **ERPNext v16** that receives every donation the moment it happens (website, store, POS, bank), books it to its project in the **General Ledger**, bills monthly memberships with saved cards, runs spending through an audited approval workflow, and gives donors a self-service portal. **The GL is the single source of truth**: every balance on every screen is read from it.
 
-Portfolio project. **Fake data only**, and payments use **Moyasar's test environment** only.
+Portfolio project. **Fake data only.** Card payments use **Moyasar's test environment** only. ERPNext and Frappe core are never modified.
 
 ---
 
 ## What it does
 
-| Channel | How it arrives | Status on arrival |
-|---|---|---|
-| Donation page (`/donate`) | Moyasar payment form → verified server-side with the secret key (callback **and** webhook) | `Pending` → `Paid` |
-| Online store | `POST create_donation` (REST API, token auth) | `Paid` |
-| POS terminal at an event | Same API, with `terminal_id`, `card_scheme`, `rrn` | `Paid` |
-| Bank transfer | Accountant records it with the transfer proof, confirms after checking the statement | `Pending` → `Paid` |
-
-Then, for every role:
-
-- **Executive Director**: dashboard with KPIs, monthly trend, donations by channel, and the approval queue.
-- **Project Manager**: sees **only their own projects** (row-level permissions), balances, and raises disbursement requests.
-- **Accountant**: verifies bank transfers, reviews requests, confirms payouts, runs the **Moyasar reconciliation** report.
+| Area | How |
+|---|---|
+| **Donation page** `/donate` | Moyasar payment form → payment verified server-side with the secret key (callback **and** webhook) → Donation submitted → Journal Entry with the project on both lines |
+| **Stores and partners** | REST API with token auth. `(client, external_reference)` is a **unique index** in the database: replays return `200 duplicate`, a changed amount returns `409` |
+| **POS at events** | Same API with `terminal_id`, `card_scheme`, `rrn`, `event_code`. Each terminal is registered to an event and only accepted inside its time window |
+| **Live event screen** `/event/<code>` | Big-screen page for a booth: total, progress, last hour, per project, per terminal. No donor names. Guests can't use socket.io in v16, so it polls a 30-second cached feed that is cleared on every donation |
+| **Bank transfers** | Accountant records the transfer with its proof and submits after checking the statement |
+| **Memberships** | Bronze / Silver / Gold tiers on native **Subscription → Sales Invoice → Payment Entry**. The card is tokenised by Moyasar (we only keep the token in a Password field, never card data). A daily job charges due invoices, retries at +3 and +7 days, then suspends. Members can change tier, update their card or cancel from the portal |
+| **Restricted funds** | A restricted project can never spend more than its GL balance minus approved-but-unpaid requests. Checked at submit, at each approval and at payment, with the project row locked. Unrestricted money reaches a restricted project only through an approved **Fund Allocation** |
+| **Disbursement workflow** | Project Manager → Accountant → Executive Director → Accountant pays. Every transition is versioned (user + time). Payment posts one Journal Entry |
+| **Donor portal** `/my-giving` | Donations, receipts (PDF), gifts, annual statement (PDF), membership card, change card. A donor only ever sees their own rows (permission query conditions + `has_permission`) |
+| **Gifts and receipts** | Gift link `/gift/<token>` (amount hidden unless the donor opts in). Receipt QR → `/verify/<token>` confirms number, date, amount and project, never the donor |
+| **Reports and workspaces** | Six Script Reports and three role workspaces with 13 Number Cards (see below) |
+| **Moyasar reconciliation** | Daily job compares Moyasar's payments with the GL, **heals** website payments whose callback and webhook were both lost, and reports the rest |
+| **ZATCA** | Arabic simplified tax invoice for memberships with a QR. Signing and reporting are done by the separate [`ksa_compliance`](https://github.com/lavaloon-eg/ksa_compliance) app; when it has processed an invoice we print its Phase-2 QR, otherwise a Phase-1 TLV QR |
 
 ### Disbursement workflow
 
@@ -38,12 +41,19 @@ stateDiagram-v2
     PendingAccountantReview --> PendingExecutiveApproval: Accountant · Approve
     PendingExecutiveApproval --> Approved: Executive Director · Approve
     PendingExecutiveApproval --> Rejected: Executive Director · Reject (reason required)
-    Approved --> Disbursed: Accountant · Confirm Disbursement
+    Approved --> Paid: Accountant · Mark Paid (posts the Journal Entry)
 ```
 
-- The amount is re-checked against the balance at **every** forward step. Already-approved amounts are reserved, so two approvals can never spend the same riyal (the project row is locked with `SELECT … FOR UPDATE`).
-- The project balance only goes down at **Disbursed**.
-- Every transition is tracked (Track Changes) and notifies the next person in the bell icon.
+### Money flow (all in the General Ledger)
+
+| Event | Debit | Credit | Project on |
+|---|---|---|---|
+| Donation (website) | Moyasar Clearing | Restricted / Unrestricted Donations Income | both lines |
+| Donation (bank / store / POS) | Main Bank Account / Online Store Clearing / mada POS Clearing | Restricted / Unrestricted Donations Income | both lines |
+| Membership invoice | Debtors | Membership Income (+ VAT if configured) | GENERAL |
+| Membership payment | Moyasar Clearing | Debtors | GENERAL |
+| Fund Allocation | Fund Transfers Out (GENERAL) | Fund Transfers In (restricted project) | each line |
+| Disbursement paid | Project Program Expenses | Main Bank Account | both lines |
 
 ---
 
@@ -52,45 +62,78 @@ stateDiagram-v2
 Needs [Docker Desktop](https://www.docker.com/products/docker-desktop/).
 
 ```bash
-git clone <this-repo> ataa-hub
+git clone https://github.com/hiiffaa1243-tech/ataa-hub.git
 cd ataa-hub/docker
 docker compose up
 ```
 
-The first start takes **10–15 minutes** (it builds a Frappe v15 bench, creates the site and loads demo data). When the log shows `Ataa Hub is starting`, open:
+The first start takes **about 25 minutes**: it installs Python 3.14 and Node 24, builds an ERPNext v16 bench, creates the site, finishes the setup wizard headless for a fake association (**جمعية عطاء التجريبية**) and loads the demo data. When the log shows `Ataa Hub is starting`, open:
 
 | URL | What |
 |---|---|
-| http://localhost:8000/donate | Public donation page |
 | http://localhost:8000/app | Staff desk (log in with an account below) |
+| http://localhost:8000/donate | Public donation page |
+| http://localhost:8000/event/CLOCKTOWER-2026 | Live event screen (Clock Tower booth) |
+| http://localhost:8000/membership | Membership sign-up |
+| http://localhost:8000/my-giving | Donor portal |
 | http://localhost:8000/api-docs | Interactive API documentation (Swagger UI) |
 
-### Demo accounts (local only)
+`DEMO_DATA=0 docker compose up` starts an empty association instead.
 
-| Role | Email | Password |
-|---|---|---|
-| Executive Director | `ed@ataa.test` | `Ataa@Demo2026` |
-| Project Manager | `pm@ataa.test` | `Ataa@Demo2026` |
-| Project Manager (other projects) | `pm2@ataa.test` | `Ataa@Demo2026` |
-| Donations Accountant | `accountant@ataa.test` | `Ataa@Demo2026` |
-| System Manager | `Administrator` | `admin` |
+### Demo accounts (local only, fake people)
+
+| Role | Email | Password | Start at |
+|---|---|---|---|
+| Executive Director | `ed@ataa.test` | `Ataa@Demo2026` | Workspace **Ataa Executive** |
+| Donations Accountant | `accountant@ataa.test` | `Ataa@Demo2026` | Workspace **Ataa Accountant** |
+| Project Manager (Suqya + Wafada) | `pm@ataa.test` | `Ataa@Demo2026` | Workspace **Ataa Project Manager** |
+| Project Manager (Iftar) | `pm2@ataa.test` | `Ataa@Demo2026` | Workspace **Ataa Project Manager** |
+| Donor (Gold member) | `donor@ataa.test` | `Ataa@Demo2026` | `/my-giving` |
+| System Manager | `Administrator` | `admin` | |
 
 API keys created by the demo seed (local only): store `demo_store_key:demo_store_secret`, POS `demo_pos_key:demo_pos_secret`, deactivated partner `demo_inactive_key:demo_inactive_secret`.
 
-### Enable card payments (optional)
+### What the demo seed contains
+
+`bench --site <site> execute ataa_hub.setup.demo.seed` (local sites only, safe to run again):
+
+- 4 restricted projects + the GENERAL fund, an API client per channel, the event **CLOCKTOWER-2026** with terminals T01 and T02.
+- 22 donations over three months: confirmed and waiting bank transfers, store orders, 7 POS donations at the booth in the last hours, 2 gifts.
+- One disbursement request in **each** workflow state (Draft, Pending Accountant Review, Pending Executive Approval, Approved, Rejected, Paid) and a Fund Allocation waiting for the Executive Director.
+- 4 members (Gold, Silver, Bronze, and a Gold member in **Payment Pending** after a declined charge).
+
+`bench --site <site> execute ataa_hub.setup.demo.summary` prints balances, card values and the audit trail of the paid request. CI runs the seed twice on a clean site on every push.
+
+### Card payments (optional)
 
 1. Create a free account at [moyasar.com](https://moyasar.com) and copy the **test** keys (`pk_test_…`, `sk_test_…`).
-2. In the desk: **Moyasar Settings** → paste the keys (or put `moyasar_publishable_key` / `moyasar_secret_key` / `moyasar_webhook_secret` in `site_config.json`).
-3. Pay on `/donate` with test card `4111 1111 1111 1111`.
-4. To test the webhook locally, expose port 8000 (e.g. `cloudflared tunnel --url http://localhost:8000`) and register `https://<tunnel>/api/method/ataa_hub.payments.moyasar_webhook` in Moyasar with your webhook secret.
+2. Put them in **Moyasar Settings** in the desk, or as `MOYASAR_PUBLISHABLE_KEY` / `MOYASAR_SECRET_KEY` in the environment (Codespaces secrets). Never in the repo.
+3. Pay on `/donate` or `/membership` with test card `4111 1111 1111 1111`.
+4. To receive webhooks locally, expose port 8000 (e.g. `cloudflared tunnel --url http://localhost:8000`) and register `https://<tunnel>/api/method/ataa_hub.payments.moyasar_webhook` with your webhook secret.
 
-### Without Docker (existing bench)
+### ZATCA sandbox (optional)
 
 ```bash
-bench get-app https://github.com/<you>/ataa_hub
-bench --site <site> install-app ataa_hub
-bench --site <site> execute ataa_hub.setup.demo.seed
+bench --site <site> install-app ksa_compliance   # after: bench get-app https://github.com/lavaloon-eg/ksa_compliance
+bench --site <site> execute ataa_hub.zatca.setup_sandbox_demo
 ```
+
+`setup_sandbox_demo` sets ZATCA's published sandbox VAT number on the company and a **15 % VAT included** template (with a Standard-rate tax category) for membership invoices, so a 50 SAR member still pays 50 SAR. Then fill **ZATCA Business Settings** (Fatoora server *Sandbox*), set up the CLI from that screen and onboard with the sandbox OTP. In our run the sandbox returned **Accepted with warnings** for a membership invoice; the only warning (BR-KSA-08) asks for the seller's commercial registration number. The VAT treatment of a real association is a question for its tax advisor (PRD Q1), so nothing tax-related runs on install.
+
+---
+
+## Reports and workspaces
+
+| Report | For | Shows |
+|---|---|---|
+| Donations by Project and Channel | ED, Accountant | Count, total and average per project × channel, with a chart |
+| Monthly Project Statement | ED, Accountant, PM | Opening, donations, memberships, transfers in/out, expenses, closing per project, all from the GL. Closing equals `get_project_balance` |
+| Moyasar Reconciliation | Accountant | Every Moyasar payment against the GL: Matched, Missing in ERPNext, Missing at Moyasar, Amount Mismatch, Cancelled in ERPNext |
+| Membership Report | ED | Per tier: active, payment pending, suspended, new, cancelled, MRR, churn |
+| Impact Report | ED, PM | Impact units (meals, pilgrims served…) per project and month, frozen at the time of giving |
+| Event Performance | ED | One event by hour, terminal or card scheme |
+
+Workspaces: **Ataa Executive**, **Ataa Project Manager**, **Ataa Accountant**. Each Number Card calls a whitelisted method that checks the role first.
 
 ---
 
@@ -106,61 +149,67 @@ curl -X POST "http://localhost:8000/api/method/ataa_hub.api.v1.create_donation" 
        "paid_at":"2026-11-17T15:42:10+03:00","payment_reference":"pay_8f2c1a9b"}'
 ```
 
-- **Idempotent**: `(API client, external_reference)` has a **UNIQUE index in the database**. Same request again → `200 duplicate:true`; same reference with another amount → `409`. A race between two identical requests is caught by the index, not just by application code.
-- **Auth**: Frappe's native token auth, one machine user per client. Deactivating a client returns `403 CLIENT_INACTIVE` immediately.
-- **Validation**: every invalid field is reported at once in `error.details`.
-- **Audit**: the raw request body is stored on the donation (visible to System Manager / Accountant only through a permission level).
-
-### Postman
-
-Import [`postman/ataa_hub_v1.postman_collection.json`](postman/ataa_hub_v1.postman_collection.json) and the environment [`postman/ataa_hub_local.postman_environment.json`](postman/ataa_hub_local.postman_environment.json), then **Run collection**: 16 requests (online store, POS terminal, every error case), each with tests.
+Postman: import [`postman/ataa_hub_v2.postman_collection.json`](postman/ataa_hub_v2.postman_collection.json) and [`postman/ataa_hub_local.postman_environment.json`](postman/ataa_hub_local.postman_environment.json), then **Run collection** (30 requests with tests: store, POS at the event, every error case).
 
 ---
 
 ## Tests
 
 ```bash
-docker compose exec frappe bash -lc "cd ~/frappe-bench && bench --site ataa.localhost run-tests --app ataa_hub"
+docker compose exec frappe bash -lc "cd ~/frappe-bench && bench --site ataa.localhost set-config allow_tests true && bench --site ataa.localhost run-tests --app ataa_hub"
 ```
 
-| File | Covers |
-|---|---|
-| `tests/test_api_v1.py` | Idempotency, 401/403/404/409, every validation rule, POS fields, allow-lists, donor matching |
-| `tests/test_api_http.py` | Through the real HTTP stack: valid key, wrong key → 401, missing key → 401 |
-| `tests/test_business_rules.py` | Refund reverses balance, paid donations locked and undeletable, bank-transfer proof, full workflow, reserved approvals, rejection reason, row-level permissions |
-| `tests/test_payments.py` | Callback + webhook record once, tampered amount rejected, webhook secret, reconciliation finds a payment missing in the platform |
+162 integration tests, green on a fresh site and in CI. Moyasar is reached only through `ataa_hub.moyasar.get_client()`, which tests replace with a fake, so no network is needed.
 
-CI runs lint + the full suite on every push ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
+| File | Tests | Covers |
+|---|---|---|
+| `test_setup.py` | 11 | Accounts, modes of payment, roles, custom fields, tiers → items and plans, idempotent setup |
+| `test_donation.py` | 23 | One JE per donation with the project on both lines, cancel reverses, proof required, impact frozen, row-level rules |
+| `test_accounting.py` | 8 | Balances read from the GL only |
+| `test_api.py` / `test_api_http.py` | 32 / 5 | Idempotency, 401/403/404/409, event window and terminals, gifts, through the real HTTP stack |
+| `test_payments.py` | 7 | Callback and webhook record once, tampered amount never recorded, webhook secret |
+| `test_spending.py` | 18 | Overspend blocked at every step, reserved approvals, one role per step, fund allocation, audit tracking |
+| `test_memberships.py` | 21 | Sign-up, daily charging, never charged twice, dunning, stale attempts, change tier/card, cancel, honorary |
+| `test_portal.py` | 15 | Own data only, PDFs, verify and gift pages, membership card |
+| `test_events.py` | 8 | Feed totals, no donor data, cache cleared on submit, guest endpoint |
+| `test_reports.py` | 14 | Every report with known numbers, reconciliation and healing, cards and their permissions, impact email, ZATCA QR and invoice |
+
+The PRD acceptance criteria are mapped to these tests in [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md).
 
 ---
 
-## How it's built (Frappe conventions)
+## How it's built
 
 ```
 ataa_hub/
-├── hooks.py                  # install hooks, row-level permission hooks, home page
-├── api/v1.py                 # whitelisted REST endpoints (list_projects, create_donation, get_donation)
-├── payments.py               # Moyasar: pending donation, server-side verification, webhook
-├── services.py               # balances recomputed from source rows, donor matching, notifications
-├── permissions.py            # Project Manager sees only own projects
-├── setup/install.py          # roles + Workflow created idempotently on install/migrate
-├── setup/demo.py             # fake demo data
-├── ataa_hub/                 # module "Ataa Hub"
-│   ├── doctype/              # 8 DocTypes (JSON + controller .py + form/list .js)
-│   ├── report/               # 3 Script Reports
-│   ├── number_card/          # 9 Number Cards
-│   ├── dashboard_chart/      # 3 Dashboard Charts
-│   └── workspace/            # 3 role dashboards
-├── www/donate/               # public pages (Jinja + Python context)
-├── public/                   # CSS, JS, images, openapi.yaml
-├── translations/ar.csv       # Arabic UI
-└── tests/
+├── hooks.py              # doc_events, scheduler, permission hooks, routes, fixtures, jinja
+├── accounting.py         # get_project_balance / get_available: SUM over GL Entry
+├── payments.py           # Moyasar: pending donation, server-side verification, webhook
+├── moyasar.py            # the only HTTP client for Moyasar (patched in tests)
+├── memberships.py        # sign-up, daily charging, dunning, status, self-service
+├── reconciliation.py     # daily Moyasar ↔ GL reconciliation with healing
+├── events.py, public.py  # live event feed, gift and verify pages
+├── dashboards.py         # Number Card methods (role-guarded)
+├── impact.py, zatca.py   # monthly impact email, invoice QR and sandbox setup
+├── permissions.py        # row-level rules for PMs and portal donors
+├── api/v1.py             # REST endpoints for stores and POS
+├── portal/               # whitelisted methods for /my-giving and /membership
+├── overrides/            # Journal Entry guard (donation income needs a project)
+├── setup/                # install, setup wizard, company/accounts, workflows, demo seed
+├── ataa_hub/doctype/     # 15 DocTypes (Donation, Disbursement Request, Fund Allocation, …)
+├── ataa_hub/report/      # 6 Script Reports
+├── ataa_hub/workspace/   # 3 role workspaces
+├── fixtures/             # custom fields, roles, number cards
+├── www/                  # donate, membership, my_giving, event, gift, verify, api-docs
+├── templates/            # emails, print templates
+└── tests/                # 162 integration tests
 ```
 
 Design decisions worth noting:
 
-- **Balances are recomputed, never incremented.** `SUM()` over paid donations and disbursed requests, so retries, refunds and late webhooks can't drift the numbers.
-- **Built-in Frappe first**: Workflow, Track Changes, Number Cards, Dashboard Charts, Workspaces, Script Reports, permission levels, token auth. Custom code only where the PRD needs a rule Frappe doesn't have.
-- **Never trust the browser**: the callback page ignores its query string and fetches the payment from Moyasar with the secret key, comparing status, amount (halalas) and donation id.
+- **Reuse ERPNext first.** Project, Customer, Journal Entry, Subscription, Sales Invoice, Payment Entry, Workflow, Version, Number Card, Workspace, Script Report. New DocTypes only where ERPNext has no concept (Donation, Disbursement Request, Fund Allocation, Fundraising Event, API Client, Donor Payment Method, Membership Charge Attempt).
+- **Balances are never stored.** They are summed from GL Entry, so retries, cancellations and late webhooks can't drift a number.
+- **Never trust the browser.** The callback page ignores its query string and fetches the payment from Moyasar with the secret key, comparing status, amount in halalas and the donation id.
+- **Money moves under a row lock.** Spending checks and membership charges lock the project or invoice row (`SELECT … FOR UPDATE`), and a charge attempt is committed *before* calling Moyasar, so a crash can never charge twice.
 
-Product requirements: [PRD.md](PRD.md) (Arabic).
+Product requirements: [PRD.md](PRD.md) · build plan: [docs/BUILD_PLAN.md](docs/BUILD_PLAN.md) · Arabic walkthrough: [docs/شرح-المشروع.md](docs/شرح-المشروع.md).

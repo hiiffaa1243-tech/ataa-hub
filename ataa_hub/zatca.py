@@ -19,6 +19,7 @@ from frappe.utils import flt, get_datetime
 
 DEMO_VAT_NUMBER = "399999999900003"  # ZATCA's published sandbox test VAT number
 DEMO_TEMPLATE_TITLE = "KSA VAT 15% Included"
+DEMO_TAX_CATEGORY = "KSA VAT Standard"
 
 
 def tlv(tag: int, value: str) -> bytes:
@@ -42,10 +43,12 @@ def phase1_qr(seller: str, vat_number: str, timestamp, total, vat_total) -> str:
 
 
 def decode_tlv(text: str) -> dict[int, str]:
+	"""Tags 1–5 are text. Phase-2 tags (hash, signature, public key…) are binary: returned as base64."""
 	raw, out, i = base64.b64decode(text), {}, 0
 	while i < len(raw):
 		tag, length = raw[i], raw[i + 1]
-		out[tag] = raw[i + 2 : i + 2 + length].decode("utf-8")
+		value = raw[i + 2 : i + 2 + length]
+		out[tag] = value.decode("utf-8") if tag <= 5 else base64.b64encode(value).decode()
 		i += 2 + length
 	return out
 
@@ -113,6 +116,9 @@ def setup_sandbox_demo(company: str | None = None) -> dict:
 			}
 		).insert(ignore_permissions=True)
 
+	if not frappe.db.get_value("Sales Taxes and Charges Template", template, "tax_category"):
+		frappe.db.set_value("Sales Taxes and Charges Template", template, "tax_category", _tax_category())
+
 	settings = frappe.get_single("Membership Settings")
 	if not settings.sales_taxes_template:
 		settings.sales_taxes_template = template
@@ -125,6 +131,16 @@ def setup_sandbox_demo(company: str | None = None) -> dict:
 		"template": template,
 		"ok": cint(1),
 	}
+
+
+def _tax_category() -> str:
+	"""ksa_compliance reads the ZATCA category (S = standard rate) from the template's Tax Category."""
+	name = DEMO_TAX_CATEGORY
+	if not frappe.db.exists("Tax Category", name):
+		frappe.get_doc({"doctype": "Tax Category", "title": name}).insert(ignore_permissions=True)
+	if frappe.get_meta("Tax Category").has_field("custom_zatca_category"):
+		frappe.db.set_value("Tax Category", name, "custom_zatca_category", "Standard rate")
+	return name
 
 
 def _vat_account(company):
