@@ -34,18 +34,32 @@ def _pl_sum(project: str, accounts: list[str] | None = None) -> float:
 	return flt(query.run()[0][0])
 
 
-def get_committed_amount(project: str) -> float:
-	"""Approved disbursements not yet paid. The DocType arrives in M4; until then 0."""
-	if not frappe.db.table_exists("Disbursement Request"):
-		return 0.0
+def get_committed_amount(project: str, exclude_request: str | None = None) -> float:
+	"""Approved disbursements not yet paid (they leave the balance only when paid)."""
 	dr = frappe.qb.DocType("Disbursement Request")
-	total = (
+	query = (
 		frappe.qb.from_(dr)
 		.select(Sum(dr.amount))
 		.where((dr.project == project) & (dr.docstatus == 1) & (dr.workflow_state == "Approved"))
-		.run()[0][0]
 	)
-	return flt(total)
+	if exclude_request:
+		query = query.where(dr.name != exclude_request)
+	return flt(query.run()[0][0])
+
+
+def lock_project(project: str) -> None:
+	"""Row lock on the project until the transaction ends.
+
+	Every spending check takes this lock first, so two approvals on the same project
+	run one after the other and can never spend the same riyal twice (PRD §6.3).
+	"""
+	frappe.db.sql("select name from `tabProject` where name = %s for update", (project,))
+
+
+def get_available(project: str, exclude_request: str | None = None, lock: bool = True) -> float:
+	if lock:
+		lock_project(project)
+	return flt(_pl_sum(project) - get_committed_amount(project, exclude_request), 2)
 
 
 def get_donation_income_accounts() -> list[str]:
@@ -67,3 +81,10 @@ def get_project_balance(project: str) -> frappe._dict:
 		target_amount=target,
 		progress_percent=flt(donations / target * 100, 2) if target else None,
 	)
+
+
+@frappe.whitelist()
+def get_project_balance_for_form(project: str) -> dict:
+	"""Shown on the Disbursement Request / Fund Allocation forms."""
+	frappe.has_permission("Project", "read", project, throw=True)
+	return get_project_balance(project)

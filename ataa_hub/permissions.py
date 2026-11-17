@@ -3,7 +3,7 @@
 Role permissions (who may read/write a DocType at all) live in the DocType JSON.
 This module adds the row rule: a Project Manager only sees the projects they are
 assigned to (ERPNext's native Project → Users table), plus those projects'
-donations (and, from M4, disbursement requests).
+donations, disbursement requests and fund allocations.
 
 `*_query_conditions` filter list views, reports and link searches.
 `*_has_permission` protect single documents (direct URL, save, print...).
@@ -40,11 +40,23 @@ def project_query_conditions(user: str | None = None) -> str:
 	return ""
 
 
-def donation_query_conditions(user: str | None = None) -> str:
+def _by_project(table: str, field: str, user: str | None) -> str:
 	user = user or frappe.session.user
 	if is_restricted_project_manager(user):
-		return f"`tabDonation`.project in {_assigned_projects_sql(user)}"
+		return f"`tab{table}`.`{field}` in {_assigned_projects_sql(user)}"
 	return ""
+
+
+def donation_query_conditions(user: str | None = None) -> str:
+	return _by_project("Donation", "project", user)
+
+
+def disbursement_query_conditions(user: str | None = None) -> str:
+	return _by_project("Disbursement Request", "project", user)
+
+
+def fund_allocation_query_conditions(user: str | None = None) -> str:
+	return _by_project("Fund Allocation", "to_project", user)
 
 
 # ------------------------------------------------------------ document checks
@@ -57,8 +69,23 @@ def project_has_permission(doc, ptype=None, user=None, **kwargs):
 	return doc.name in assigned_projects(user)
 
 
-def donation_has_permission(doc, ptype=None, user=None, **kwargs):
+def _doc_in_assigned_project(doc, field: str, user) -> bool | None:
 	user = user or frappe.session.user
 	if not is_restricted_project_manager(user):
 		return None
-	return bool(doc.project) and doc.project in assigned_projects(user)
+	project = doc.get(field)
+	if doc.is_new() and not project:
+		return None  # empty new form: the project is checked again on save
+	return bool(project) and project in assigned_projects(user)
+
+
+def donation_has_permission(doc, ptype=None, user=None, **kwargs):
+	return _doc_in_assigned_project(doc, "project", user)
+
+
+def disbursement_has_permission(doc, ptype=None, user=None, **kwargs):
+	return _doc_in_assigned_project(doc, "project", user)
+
+
+def fund_allocation_has_permission(doc, ptype=None, user=None, **kwargs):
+	return _doc_in_assigned_project(doc, "to_project", user)
