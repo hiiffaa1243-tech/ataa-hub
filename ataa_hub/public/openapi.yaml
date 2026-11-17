@@ -1,17 +1,21 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   title: Ataa Hub — Donations Integration API
-  version: "1.0.0"
+  version: "2.0.0"
   description: |
     Report donations to a nonprofit **in real time** from any sales or payment channel
-    (online store, POS terminal, partner platform). Each donation is linked to a project,
-    updates the project balance instantly and appears on the association's dashboards.
+    (online store, POS terminal, partner platform). Ataa Hub runs on **ERPNext**: every donation
+    is booked to the association's **General Ledger** in the same request, against the project you
+    name. Balances you read back are computed from the ledger.
 
     **Quick start**
     1. Ask the association for an API Client. You receive an `api_key` and an `api_secret`.
     2. Call `list_projects` to get active projects and their `project_code`.
     3. After every **successful** payment, call `create_donation` once.
     4. On timeout or `500`, retry with the **same** `external_reference`: duplicates are never recorded.
+
+    **v2 is backward compatible with v1**: same paths, only new optional fields (`gift`, `event_code`),
+    new response fields and two new error codes (`EVENT_NOT_ACTIVE`, `TERMINAL_NOT_IN_EVENT`).
 
     Frappe wraps every response body in a `message` object.
 servers:
@@ -33,7 +37,16 @@ paths:
     get:
       tags: [Projects]
       summary: List active projects
-      description: Projects that can currently receive donations. A client restricted to specific projects only sees those.
+      description: |
+        Projects that can currently receive donations (ERPNext Project: Open, active and public),
+        limited to your client's allowed projects. With `event_code`, only that event's projects.
+      parameters:
+        - name: event_code
+          in: query
+          required: false
+          schema: { type: string, maxLength: 140 }
+          example: CLOCKTOWER-2026
+          description: Unknown or inactive event → `403 EVENT_NOT_ACTIVE`.
       responses:
         "200":
           description: Active projects
@@ -55,16 +68,24 @@ paths:
   /api/method/ataa_hub.api.v1.create_donation:
     post:
       tags: [Donations]
-      summary: Create a donation (idempotent)
+      summary: Create and post a donation (idempotent)
       description: |
-        Call **once per successful payment**. The donation is recorded with status `Paid`.
+        Call **once per successful payment**. In one database transaction the platform validates the
+        request, creates a **Donation**, **submits** it and posts a **Journal Entry** (debit the channel's
+        clearing account, credit Restricted/Unrestricted Donations Income, both lines tagged with the
+        project). If any step fails, nothing is saved.
+
         The pair (your API Client + `external_reference`) is unique:
 
         | You send | Result |
         |---|---|
         | New `external_reference` | `201`, `duplicate: false` |
-        | Same reference, same project and amount | `200`, `duplicate: true`, nothing new recorded |
-        | Same reference, different project or amount | `409 DUPLICATE_CONFLICT` |
+        | Same reference, same project, amount, event and gift recipient | `200`, `duplicate: true`, nothing new recorded |
+        | Same reference, any of those different | `409 DUPLICATE_CONFLICT` |
+
+        With `event_code` the platform checks, in order: event Active and `paid_at` inside its window
+        (`EVENT_NOT_ACTIVE`), POS terminal registered on the event (`TERMINAL_NOT_IN_EVENT`), project is
+        one of the event's projects (`PROJECT_NOT_ALLOWED`).
       requestBody:
         required: true
         content:
@@ -80,18 +101,33 @@ paths:
                   paid_at: "2026-11-17T15:42:10+03:00"
                   payment_reference: pay_8f2c1a9b
                   donor: { name: Test Donor, mobile: "+966500000001" }
-              pos_terminal:
-                summary: POS terminal at an event
+              pos_event:
+                summary: POS terminal at the Clock Tower booth
                 value:
                   external_reference: TXN-T01-000731
                   project_code: WAFADA-02
                   amount: 150.00
                   paid_at: "2026-11-17T16:05:44+03:00"
                   payment_reference: AUTH-559201
-                  pos: { terminal_id: T01-HAJJ-EXPO, card_scheme: mada, rrn: "432118005731" }
+                  event_code: CLOCKTOWER-2026
+                  pos: { terminal_id: T01-CLOCKTOWER, card_scheme: mada, rrn: "432118005731" }
+              gift:
+                summary: Gift from an online store
+                value:
+                  external_reference: ORDER-100311
+                  project_code: SUQYA-01
+                  amount: 100.00
+                  paid_at: "2026-11-17T18:20:00+03:00"
+                  payment_reference: pay_77aa01
+                  donor: { name: Test Donor, mobile: "+966500000001" }
+                  gift:
+                    recipient_name: Test Recipient
+                    recipient_email: recipient@example.test
+                    occasion: Eid
+                    message: عيدكم مبارك
       responses:
         "201":
-          description: Donation created
+          description: Donation created and posted to the General Ledger
           content:
             application/json:
               schema: { $ref: "#/components/schemas/DonationEnvelope" }
@@ -105,7 +141,7 @@ paths:
         "403": { $ref: "#/components/responses/Forbidden" }
         "404": { $ref: "#/components/responses/NotFound" }
         "409":
-          description: external_reference already used with a different amount or project
+          description: external_reference already used with a different project, amount, event or gift recipient
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorEnvelope" }
@@ -153,9 +189,15 @@ components:
       properties:
         project_code: { type: string, example: SUQYA-01 }
         title: { type: string, example: سقيا ضيوف الرحمن }
+        fund_type:
+          type: string
+          enum: [Restricted, Unrestricted]
+          description: Restricted money can only be spent on this project; Unrestricted is the general fund `GENERAL`.
         target_amount: { type: number, example: 500000.00 }
-        collected_amount: { type: number, example: 312450.00 }
-        progress_percent: { type: number, example: 62.49 }
+        collected_amount: { type: number, example: 312450.00, description: Donation income in the General Ledger for this project, cancelled entries excluded. }
+        progress_percent: { type: [number, "null"], example: 62.49, description: Null when the project has no target. }
+        impact_unit_label: { type: [string, "null"], example: معتمر سُقي }
+        impact_units_per_sar: { type: number, example: 1.0, description: "impact_units = amount × impact_units_per_sar" }
         allow_custom_amount: { type: boolean, example: true }
         donation_options:
           type: array
@@ -174,7 +216,7 @@ components:
           maxLength: 140
           description: Your unique ID for this payment (order number, terminal transaction ID). Used to prevent duplicates.
         project_code: { type: string, description: From list_projects. }
-        amount: { type: number, minimum: 0.01, description: "SAR, greater than 0, max 2 decimal places." }
+        amount: { type: number, exclusiveMinimum: 0, description: "SAR, greater than 0, max 2 decimal places." }
         currency: { type: string, enum: [SAR], default: SAR }
         paid_at: { type: string, format: date-time, description: ISO 8601 with timezone. Cannot be in the future. }
         payment_reference: { type: string, maxLength: 140, description: Payment ID from your gateway or terminal. }
@@ -190,21 +232,44 @@ components:
           description: Required when your client channel is POS.
           required: [terminal_id, card_scheme, rrn]
           properties:
-            terminal_id: { type: string }
+            terminal_id: { type: string, example: T01-CLOCKTOWER }
             card_scheme: { type: string, enum: [mada, visa, mastercard, amex] }
             rrn: { type: string, pattern: '^[A-Za-z0-9]{12}$', description: Retrieval Reference Number. }
+        event_code: { type: string, maxLength: 140, example: CLOCKTOWER-2026, description: "New in v2. Fundraising event code." }
+        gift: { $ref: "#/components/schemas/Gift" }
         metadata: { type: object, additionalProperties: true, description: Stored for audit. Max 4 KB. }
+
+    Gift:
+      type: object
+      description: "New in v2. Makes this donation a gift. At least one of recipient_mobile or recipient_email is required; email only is sent by the platform."
+      required: [recipient_name]
+      properties:
+        recipient_name: { type: string, maxLength: 140 }
+        recipient_mobile: { type: string, pattern: '^\+9665\d{8}$' }
+        recipient_email: { type: string, format: email, description: The gift card is emailed here. }
+        occasion: { type: string, enum: [Eid, Ramadan, Wedding, Newborn, Graduation, In Memory, Other], default: Other }
+        message: { type: string, maxLength: 500 }
+        show_amount: { type: boolean, default: false, description: Show the amount on the gift card. }
 
     Donation:
       type: object
       properties:
         donation_id: { type: string, example: DON-2026-00412 }
-        status: { type: string, enum: [Pending, Paid, Failed, Refunded] }
+        status: { type: string, enum: [Paid, Refunded], description: "Refunded = cancelled later by the association; the ledger entry is reversed." }
         project_code: { type: string, example: SUQYA-01 }
         amount: { type: number, example: 250.00 }
         external_reference: { type: string, example: ORDER-100245 }
         duplicate: { type: boolean, description: Only on create_donation. }
         received_at: { type: string, format: date-time }
+        impact_units: { type: number, example: 250.0, description: Frozen when the donation was recorded. }
+        impact_unit_label: { type: [string, "null"], example: معتمر سُقي }
+        event_code: { type: [string, "null"], example: null }
+        gift:
+          type: [object, "null"]
+          properties:
+            url: { type: string, description: Unguessable link to the gift card. Share only with the recipient. }
+            email_sent: { type: boolean }
+        receipt_verification_url: { type: string, description: Public page that confirms the receipt (no donor data). Same link as the receipt QR code. }
 
     DonationEnvelope:
       type: object
@@ -240,22 +305,32 @@ components:
               ok: false
               error:
                 code: VALIDATION_ERROR
-                message: Request has 2 invalid fields.
-                details: { amount: Must be greater than 0., pos.rrn: "Required for POS clients: exactly 12 letters or digits." }
+                message: Request has 3 invalid fields.
+                details:
+                  amount: Must be greater than 0.
+                  pos.rrn: "Required for POS clients: exactly 12 letters or digits."
+                  gift.recipient_email: At least one of recipient_mobile or recipient_email is required.
     Unauthorized:
       description: "Missing (AUTH_REQUIRED) or wrong api_key / api_secret. A wrong key is rejected by the framework, so rely on the status code."
     Forbidden:
-      description: "CLIENT_INACTIVE, NOT_AN_API_CLIENT, PROJECT_INACTIVE or PROJECT_NOT_ALLOWED."
+      description: "CLIENT_INACTIVE, NOT_AN_API_CLIENT, PROJECT_INACTIVE, PROJECT_NOT_ALLOWED, EVENT_NOT_ACTIVE or TERMINAL_NOT_IN_EVENT."
       content:
         application/json:
           schema: { $ref: "#/components/schemas/ErrorEnvelope" }
+          example:
+            message:
+              ok: false
+              error:
+                code: TERMINAL_NOT_IN_EVENT
+                message: Terminal 'T09-CLOCKTOWER' is not registered on event 'CLOCKTOWER-2026'.
+                details: { event_code: CLOCKTOWER-2026, terminal_id: T09-CLOCKTOWER }
     NotFound:
       description: "PROJECT_NOT_FOUND or DONATION_NOT_FOUND."
       content:
         application/json:
           schema: { $ref: "#/components/schemas/ErrorEnvelope" }
     InternalError:
-      description: "INTERNAL_ERROR — retry later with the same external_reference."
+      description: "INTERNAL_ERROR — nothing was saved. Retry later with the same external_reference."
       content:
         application/json:
           schema: { $ref: "#/components/schemas/ErrorEnvelope" }
