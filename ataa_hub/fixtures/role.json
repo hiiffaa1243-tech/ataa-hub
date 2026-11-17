@@ -1,0 +1,30 @@
+[
+ {
+  "doctype": "Role",
+  "name": "Executive Director",
+  "role_name": "Executive Director",
+  "desk_access": 1,
+  "disabled": 0
+ },
+ {
+  "doctype": "Role",
+  "name": "Project Manager",
+  "role_name": "Project Manager",
+  "desk_access": 1,
+  "disabled": 0
+ },
+ {
+  "doctype": "Role",
+  "name": "Donations Accountant",
+  "role_name": "Donations Accountant",
+  "desk_access": 1,
+  "disabled": 0
+ },
+ {
+  "doctype": "Role",
+  "name": "Donation API Client",
+  "role_name": "Donation API Client",
+  "desk_access": 0,
+  "disabled": 0
+ }
+]

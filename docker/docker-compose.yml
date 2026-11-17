@@ -1,22 +1,21 @@
-# Local development environment for Ataa Hub (Frappe v15).
+# Local / Codespaces development environment for Ataa Hub (ERPNext v16).
 #
 #   cd docker
-#   docker compose up
+#   docker compose up -d && docker compose logs -f frappe
 #
-# First start takes ~10-15 minutes (bench init + site creation + demo data).
-# Then open http://localhost:8000  — the app folder is mounted live, edits apply immediately.
+# First start ~25 minutes (toolchain + bench + ERPNext + site + setup wizard).
+# Then open http://localhost:8000 (Administrator / admin). The repo is mounted live.
 # All passwords here are local-only development values.
 
 name: ataa-hub
 
 services:
   mariadb:
-    image: mariadb:10.6
+    image: mariadb:11.8
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
       - --skip-character-set-client-handshake
-      - --skip-innodb-read-only-compressed
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-ataa_local_root}
     volumes:
@@ -40,13 +39,18 @@ services:
       DB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-ataa_local_root}
       SITE_NAME: ${SITE_NAME:-ataa.localhost}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin}
-      FRAPPE_BRANCH: ${FRAPPE_BRANCH:-version-15}
+      FRAPPE_BRANCH: ${FRAPPE_BRANCH:-version-16}
+      PYTHON_VERSION: ${PYTHON_VERSION:-3.14}
+      NODE_VERSION: ${NODE_VERSION:-24}
+      # Moyasar TEST keys come from the environment (Codespaces secrets), never from the repo
+      MOYASAR_PUBLISHABLE_KEY: ${MOYASAR_PUBLISHABLE_KEY:-}
+      MOYASAR_SECRET_KEY: ${MOYASAR_SECRET_KEY:-}
     ports:
       - "8000:8000"   # web
       - "9000:9000"   # socket.io (realtime)
     volumes:
       - ..:/workspace/ataa_hub
-      # Whole home dir: keeps the bench, pyenv and nvm from the image between restarts
+      # Whole home dir: keeps the bench, uv Python and nvm Node between restarts
       - bench-home:/home/frappe
     depends_on:
       mariadb:

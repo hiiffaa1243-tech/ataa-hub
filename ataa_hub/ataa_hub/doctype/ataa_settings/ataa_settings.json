@@ -1,0 +1,177 @@
+{
+ "actions": [],
+ "creation": "2026-11-17 22:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "general_project",
+  "column_break_main",
+  "donation_vat_treatment",
+  "accounts_section",
+  "restricted_income_account",
+  "unrestricted_income_account",
+  "disbursement_expense_account",
+  "column_break_accounts",
+  "fund_transfers_in_account",
+  "fund_transfers_out_account",
+  "main_bank_account",
+  "channels_section",
+  "mop_website",
+  "mop_online_store",
+  "mop_pos",
+  "column_break_channels",
+  "mop_bank_transfer",
+  "mop_partner"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "general_project",
+   "fieldtype": "Link",
+   "label": "General (Unrestricted) Project",
+   "options": "Project",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_main",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "donation_vat_treatment",
+   "fieldtype": "Select",
+   "label": "Donation VAT Treatment",
+   "options": "Out of Scope\nExempt",
+   "default": "Out of Scope",
+   "description": "Printed on donation receipts. Donations are not tax invoices (PRD §7.11)."
+  },
+  {
+   "fieldname": "accounts_section",
+   "fieldtype": "Section Break",
+   "label": "Accounts"
+  },
+  {
+   "fieldname": "restricted_income_account",
+   "fieldtype": "Link",
+   "label": "Restricted Donations Income",
+   "options": "Account",
+   "description": "Income account of the company"
+  },
+  {
+   "fieldname": "unrestricted_income_account",
+   "fieldtype": "Link",
+   "label": "Unrestricted Donations Income",
+   "options": "Account",
+   "description": "Income account of the company"
+  },
+  {
+   "fieldname": "disbursement_expense_account",
+   "fieldtype": "Link",
+   "label": "Default Disbursement Expense",
+   "options": "Account",
+   "description": "Expense account of the company"
+  },
+  {
+   "fieldname": "column_break_accounts",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fund_transfers_in_account",
+   "fieldtype": "Link",
+   "label": "Fund Transfers In",
+   "options": "Account",
+   "description": "Income account of the company"
+  },
+  {
+   "fieldname": "fund_transfers_out_account",
+   "fieldtype": "Link",
+   "label": "Fund Transfers Out",
+   "options": "Account",
+   "description": "Income account of the company"
+  },
+  {
+   "fieldname": "main_bank_account",
+   "fieldtype": "Link",
+   "label": "Main Bank Account",
+   "options": "Account",
+   "description": "Bank account of the company"
+  },
+  {
+   "fieldname": "channels_section",
+   "fieldtype": "Section Break",
+   "label": "Mode of Payment per Channel"
+  },
+  {
+   "fieldname": "mop_website",
+   "fieldtype": "Link",
+   "label": "Website (Moyasar)",
+   "options": "Mode of Payment"
+  },
+  {
+   "fieldname": "mop_online_store",
+   "fieldtype": "Link",
+   "label": "Online Store",
+   "options": "Mode of Payment"
+  },
+  {
+   "fieldname": "mop_pos",
+   "fieldtype": "Link",
+   "label": "POS",
+   "options": "Mode of Payment"
+  },
+  {
+   "fieldname": "column_break_channels",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "mop_bank_transfer",
+   "fieldtype": "Link",
+   "label": "Bank Transfer",
+   "options": "Mode of Payment"
+  },
+  {
+   "fieldname": "mop_partner",
+   "fieldtype": "Link",
+   "label": "Partner",
+   "options": "Mode of Payment"
+  }
+ ],
+ "links": [],
+ "modified": "2026-11-17 22:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ataa Hub",
+ "name": "Ataa Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 0,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Donations Accountant",
+   "read": 1
+  },
+  {
+   "role": "Executive Director",
+   "read": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "issingle": 1,
+ "track_changes": 1,
+ "description": "Company, accounts and channel settings for donations. Filled by setup; editable by System Manager."
+}

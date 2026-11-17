@@ -1,0 +1,118 @@
+{
+ "actions": [],
+ "creation": "2026-11-17 22:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "membership_income_account",
+  "sales_taxes_template",
+  "column_break_general",
+  "first_retry_days",
+  "second_retry_days",
+  "tiers_section",
+  "tiers",
+  "honorary_section",
+  "honorary_threshold",
+  "column_break_honorary",
+  "honorary_policy"
+ ],
+ "fields": [
+  {
+   "fieldname": "membership_income_account",
+   "fieldtype": "Link",
+   "label": "Membership Income Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "sales_taxes_template",
+   "fieldtype": "Link",
+   "label": "Sales Taxes and Charges Template",
+   "options": "Sales Taxes and Charges Template",
+   "description": "Applied to membership invoices. Leave empty for no VAT (PRD §7.11)."
+  },
+  {
+   "fieldname": "column_break_general",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "first_retry_days",
+   "fieldtype": "Int",
+   "label": "First Retry After (days)",
+   "default": "3",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "second_retry_days",
+   "fieldtype": "Int",
+   "label": "Second Retry After (days)",
+   "default": "7",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "tiers_section",
+   "fieldtype": "Section Break",
+   "label": "Tiers"
+  },
+  {
+   "fieldname": "tiers",
+   "fieldtype": "Table",
+   "label": "Tiers",
+   "options": "Membership Tier"
+  },
+  {
+   "fieldname": "honorary_section",
+   "fieldtype": "Section Break",
+   "label": "Honorary Membership"
+  },
+  {
+   "fieldname": "honorary_threshold",
+   "fieldtype": "Currency",
+   "label": "Lifetime Giving Threshold",
+   "default": "10000",
+   "description": "Donors at or above this lifetime giving become Honorary (monthly job)."
+  },
+  {
+   "fieldname": "column_break_honorary",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "honorary_policy",
+   "fieldtype": "Select",
+   "label": "If the Donor Already Pays a Tier",
+   "options": "Keep paid membership\nCancel paid membership at period end",
+   "default": "Keep paid membership"
+  }
+ ],
+ "links": [],
+ "modified": "2026-11-17 22:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ataa Hub",
+ "name": "Membership Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 0,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Donations Accountant",
+   "read": 1
+  },
+  {
+   "role": "Executive Director",
+   "read": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "issingle": 1,
+ "track_changes": 1,
+ "description": "Membership tiers, dunning and honorary rules. Items and Subscription Plans are created by setup."
+}
