@@ -96,9 +96,10 @@ check 3 "zatca_erpgulf (main) on ${FRAPPE_BRANCH}" \
   zatca_app zatca_erpgulf https://github.com/ERPGulf/zatca_erpgulf.git main zatca.localhost
 
 # ---- 4/5/6. Behaviour checks (Python executed inside the site) ---------------
-cp "$SPIKE_SRC/spike_checks.py" sites/spike_checks.py   # importable: bench runs with cwd=sites
+# Put the checks inside an installed package so `bench execute` can import them
+cp "$SPIKE_SRC/spike_checks.py" apps/frappe/frappe/spike_checks.py
 check 4 "Subscription first-invoice timing" \
-  bench --site erp.localhost execute spike_checks.subscription_timing
+  bench --site erp.localhost execute frappe.spike_checks.subscription_timing
 
 realtime() {
   bench use erp.localhost
@@ -108,14 +109,14 @@ realtime() {
   (cd apps/frappe && timeout 60 node guest_socket.js erp.localhost) &
   local listener=$!
   sleep 8
-  bench --site erp.localhost execute spike_checks.publish_test_event
+  bench --site erp.localhost execute frappe.spike_checks.publish_test_event
   wait $listener
 }
 check 5 "Guest socket receives publish_realtime (room 'website')" realtime
 
 if [ -n "${MOYASAR_SECRET_KEY:-}" ]; then
   check 6 "Moyasar test token charge (3ds:false)" \
-    bench --site erp.localhost execute spike_checks.moyasar_token_charge
+    bench --site erp.localhost execute frappe.spike_checks.moyasar_token_charge
 else
   report "| 6 | Moyasar test token charge | SKIPPED (no MOYASAR_SECRET_KEY) | — |"
 fi
