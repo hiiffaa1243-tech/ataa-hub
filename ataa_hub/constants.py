@@ -97,3 +97,15 @@ STATE_PENDING_EXECUTIVE = "Pending Executive Approval"
 STATE_APPROVED = "Approved"
 STATE_REJECTED = "Rejected"
 STATE_PAID = "Paid"
+
+# ------------------------------------------------ role profiles (PRD §8)
+# Our roles add Ataa permissions; ERPNext's native roles give access to its own
+# doctypes (Project, Journal Entry, Customer...). A Role Profile assigns both at once.
+ROLE_PROFILES = {
+	"Ataa Accountant": (ROLE_ACCOUNTANT, "Accounts User", "Projects User", "Sales User"),
+	"Ataa Project Manager": (ROLE_PROJECT_MANAGER, "Projects User"),
+	"Ataa Executive Director": (ROLE_EXECUTIVE, "Projects User", "Auditor"),
+}
+
+# Only these roles may change a Project; everyone else with access reads it.
+PROJECT_EDITOR_ROLES = {"System Manager", "Administrator", ROLE_PROJECT_MANAGER, "Projects Manager"}

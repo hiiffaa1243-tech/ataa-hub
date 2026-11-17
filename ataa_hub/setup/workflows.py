@@ -1,4 +1,4 @@
-"""The two spending workflows (PRD §7.8, §7.9), written to the database on install and migrate.
+"""Spending workflows (PRD §7.8, §7.9) and role profiles (§8), written on install and migrate.
 
 They are part of the product, not a user setting, so every migrate makes the
 database match this file.
@@ -114,3 +114,19 @@ def _ensure_masters(spec):
 			frappe.get_doc({"doctype": "Workflow Action Master", "workflow_action_name": action}).insert(
 				ignore_permissions=True
 			)
+
+
+def setup_role_profiles():
+	"""Role Profiles pairing our roles with ERPNext's native ones (PRD §8)."""
+	from ataa_hub.constants import ROLE_PROFILES
+
+	for name, roles in ROLE_PROFILES.items():
+		profile = (
+			frappe.get_doc("Role Profile", name)
+			if frappe.db.exists("Role Profile", name)
+			else frappe.new_doc("Role Profile")
+		)
+		profile.role_profile = name
+		profile.set("roles", [{"role": r} for r in roles if frappe.db.exists("Role", r)])
+		profile.flags.ignore_permissions = True
+		profile.save()

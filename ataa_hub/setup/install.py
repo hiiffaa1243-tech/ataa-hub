@@ -9,18 +9,20 @@ import frappe
 
 from ataa_hub.setup.company import setup_company
 from ataa_hub.setup.wizard import complete_setup_wizard
-from ataa_hub.setup.workflows import setup_workflows
+from ataa_hub.setup.workflows import setup_role_profiles, setup_workflows
 
 
 def after_install():
 	set_site_defaults()
 	setup_company()
 	setup_workflows()
+	setup_role_profiles()
 
 
 def after_migrate():
 	setup_company()
 	setup_workflows()
+	setup_role_profiles()
 
 
 def before_tests():
@@ -28,6 +30,7 @@ def before_tests():
 	complete_setup_wizard()
 	setup_company()
 	setup_workflows()
+	setup_role_profiles()
 	frappe.db.commit()
 
 

@@ -12,7 +12,9 @@ On Frappe v16 a hook must return True for "no objection": None counts as a denia
 
 import frappe
 
-from ataa_hub.constants import FULL_VISIBILITY_ROLES, ROLE_PROJECT_MANAGER
+from ataa_hub.constants import FULL_VISIBILITY_ROLES, PROJECT_EDITOR_ROLES, ROLE_PROJECT_MANAGER
+
+WRITE_PTYPES = {"write", "create", "delete", "submit", "cancel", "amend"}
 
 
 def is_restricted_project_manager(user: str | None = None) -> bool:
@@ -65,6 +67,8 @@ def fund_allocation_query_conditions(user: str | None = None) -> str:
 
 def project_has_permission(doc, ptype=None, user=None, **kwargs):
 	user = user or frappe.session.user
+	if ptype in WRITE_PTYPES and not (set(frappe.get_roles(user)) & PROJECT_EDITOR_ROLES):
+		return False  # accountant / executive see projects but don't edit them (PRD §8)
 	if not is_restricted_project_manager(user) or doc.is_new():
 		return True  # no extra rule; role permissions still decide
 	return doc.name in assigned_projects(user)
