@@ -183,7 +183,7 @@ def moyasar_token_charge():
 	say(
 		f"Token create: status={token.get('status')} brand={token.get('brand')} last4={token.get('last_four')} needs_3ds={bool(token.get('verification_url'))}"
 	)
-	if token.get("status") != "active":
+	if token.get("status") not in ("active", "save_only"):
 		say("Token not active without 3DS: the real sign-up must complete 3DS in the browser (expected).")
 		return
 
@@ -199,6 +199,11 @@ def moyasar_token_charge():
 		},
 		timeout=30,
 	).json()
+	if not payment.get("id"):
+		say(
+			f"Token charge rejected: type={payment.get('type')} message={payment.get('message')} errors={payment.get('errors')}"
+		)
+		return
 	fetched = requests.get(
 		f"https://api.moyasar.com/v1/payments/{payment.get('id')}", auth=(sk, ""), timeout=30
 	).json()

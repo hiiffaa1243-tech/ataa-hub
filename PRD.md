@@ -292,7 +292,7 @@ Bronze 50, Silver 100, Gold 250, Platinum 500 SAR / month (amounts in Membership
 #### 7.5.2 Sign-up
 1. Donor picks a tier on `/membership` (logged in or with email + mobile).
 2. Server creates/matches the Customer, then a Draft "sign-up intent" is held in the session; the Moyasar form charges the first month with **save card** enabled.
-3. Server verifies the payment with the secret key and reads the returned **token**, checks its status with `GET /v1/tokens/:id` (must be `active`), stores it in **Donor Payment Method**.
+3. Server verifies the payment with the secret key and reads the returned **token**, checks its status with `GET /v1/tokens/:id` (must be chargeable: `active`, or `save_only` for tokens saved without a payment; M0 confirmed a `save_only` test token charges successfully), stores it in **Donor Payment Method**.
 4. Server creates the **Subscription** (party = Customer, plan = tier, monthly, invoice generated at the beginning of the period, submit invoice on, `generate_new_invoices_past_due_date = 0`). **M0 finding:** on insert, v16 immediately creates and submits the first Sales Invoice (posting = due = start date) and moves `current_invoice_start/end` to the *next* period. We then record a **Payment Entry** against that invoice for the verified first payment.
 5. Customer `membership_tier = tier`, `membership_status = Active`, `member_since = today`, Contact and portal User created (login by email link).
 
@@ -523,7 +523,7 @@ Live payments or live ZATCA; real POS hardware (Postman simulates terminals); au
 | Q2 | ZATCA app and ERPNext version | **Closed (M0):** v16 + `ksa_compliance` (D5, D6) |
 | Q3 | Honorary donor who already pays a tier | Keep paid membership + Honorary badge |
 | Q4 | Does `lifetime_giving` include membership payments? | Yes, donations + paid membership invoices |
-| Q5 | Moyasar test-mode behaviour for token charges (3DS, `cvc` requirements of test cards) | **Still open:** M0 check 6 skipped (no Moyasar test keys yet). Code keeps Moyasar behind an adapter; verified before M5 with test keys |
+| Q5 | Moyasar test-mode behaviour for token charges | **Closed (M0):** a test-card token (`save_only`) charged with `source: {type: "token", 3ds: false}` returns `paid` / `APPROVED`, confirmed by re-fetching the payment. The secret key is shown in full only once when created; the dashboard later shows only its ID |
 | Q6 | Section 7 of the change request was truncated | System Manager owns all settings |
 | R1 | Scope is large for one release | Build Plan orders work so each milestone is demoable |
 | R2 | Guest realtime on public pages | **Confirmed in M0:** guests can't connect → public screen polls (7.3) |
