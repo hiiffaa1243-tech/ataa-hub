@@ -177,7 +177,7 @@ class TestDonors(IntegrationTestCase):
 class TestProjectManagerRows(IntegrationTestCase):
 	def test_project_manager_sees_only_assigned_projects_and_their_donations(self):
 		pm = make_user("pm-rows@ataa.test", ["Project Manager"])
-		mine = make_project(users=[{"user": pm}]).name
+		mine = make_project(users=[{"user": pm, "welcome_email_sent": 1}]).name
 		theirs = make_project().name
 		mine_donation = make_bank_donation(mine, 10).name
 		their_donation = make_bank_donation(theirs, 10).name
