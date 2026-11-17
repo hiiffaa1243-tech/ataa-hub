@@ -1,0 +1,151 @@
+{
+ "actions": [],
+ "creation": "2026-11-18 20:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "sales_invoice",
+  "customer",
+  "payment_method",
+  "attempt_no",
+  "column_break_main",
+  "status",
+  "amount",
+  "next_retry_on",
+  "result_section",
+  "moyasar_payment_id",
+  "payment_entry",
+  "column_break_result",
+  "error_message",
+  "review_notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "sales_invoice",
+   "fieldtype": "Link",
+   "label": "Sales Invoice",
+   "options": "Sales Invoice",
+   "reqd": 1,
+   "in_list_view": 1,
+   "search_index": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Donor",
+   "options": "Customer",
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "search_index": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "payment_method",
+   "fieldtype": "Link",
+   "label": "Card",
+   "options": "Donor Payment Method",
+   "read_only": 1
+  },
+  {
+   "fieldname": "attempt_no",
+   "fieldtype": "Int",
+   "label": "Attempt",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_main",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Processing\nSucceeded\nFailed\nNeeds Review",
+   "default": "Processing",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "description": "Needs Review: the result could not be confirmed with Moyasar. Check the payment in the Moyasar dashboard before charging again."
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "label": "Amount (SAR)",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "next_retry_on",
+   "fieldtype": "Date",
+   "label": "Next Retry On",
+   "in_standard_filter": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "result_section",
+   "fieldtype": "Section Break",
+   "label": "Result"
+  },
+  {
+   "fieldname": "moyasar_payment_id",
+   "fieldtype": "Data",
+   "label": "Moyasar Payment ID",
+   "unique": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "payment_entry",
+   "fieldtype": "Link",
+   "label": "Payment Entry",
+   "options": "Payment Entry",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_result",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "error_message",
+   "fieldtype": "Small Text",
+   "label": "Error",
+   "read_only": 1
+  },
+  {
+   "fieldname": "review_notes",
+   "fieldtype": "Small Text",
+   "label": "Review Notes"
+  }
+ ],
+ "links": [],
+ "modified": "2026-11-18 20:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ataa Hub",
+ "name": "Membership Charge Attempt",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "Donations Accountant",
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "export": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "autoname": "MCA-.YYYY.-.#####",
+ "title_field": "sales_invoice",
+ "search_fields": "customer,sales_invoice"
+}

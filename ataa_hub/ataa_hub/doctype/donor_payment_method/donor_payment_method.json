@@ -1,0 +1,126 @@
+{
+ "actions": [],
+ "creation": "2026-11-18 20:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "customer",
+  "status",
+  "is_default",
+  "column_break_main",
+  "moyasar_token",
+  "brand",
+  "last4",
+  "expiry_month",
+  "expiry_year",
+  "source_payment_id"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Card",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Donor",
+   "options": "Customer",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "search_index": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Active\nInactive\nDeleted",
+   "default": "Active",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "is_default",
+   "fieldtype": "Check",
+   "label": "Default Card"
+  },
+  {
+   "fieldname": "column_break_main",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "moyasar_token",
+   "fieldtype": "Password",
+   "label": "Moyasar Token",
+   "reqd": 1,
+   "set_only_once": 1,
+   "description": "Moyasar card token only. Card numbers are never stored."
+  },
+  {
+   "fieldname": "brand",
+   "fieldtype": "Data",
+   "label": "Brand",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last4",
+   "fieldtype": "Data",
+   "label": "Last 4 Digits",
+   "length": 4,
+   "read_only": 1
+  },
+  {
+   "fieldname": "expiry_month",
+   "fieldtype": "Int",
+   "label": "Expiry Month",
+   "read_only": 1
+  },
+  {
+   "fieldname": "expiry_year",
+   "fieldtype": "Int",
+   "label": "Expiry Year",
+   "read_only": 1
+  },
+  {
+   "fieldname": "source_payment_id",
+   "fieldtype": "Data",
+   "label": "First Payment (Moyasar)",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-11-18 20:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ataa Hub",
+ "name": "Donor Payment Method",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "Donations Accountant",
+   "read": 1,
+   "report": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "autoname": "DPM-.#####",
+ "title_field": "title",
+ "show_title_field_in_link": 1,
+ "search_fields": "title,customer"
+}

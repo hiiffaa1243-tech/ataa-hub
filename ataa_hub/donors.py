@@ -100,14 +100,24 @@ def _add_email_if_missing(customer, email):
 
 
 def update_lifetime_giving(customer: str | None) -> None:
-	"""Recompute from submitted donations (memberships are added in M5)."""
+	"""Recompute from source documents: submitted donations + the paid part of
+	submitted membership invoices. Never incremented, so it can always be rebuilt."""
 	if not customer:
 		return
 	donation = frappe.qb.DocType("Donation")
-	total = (
+	donations = (
 		frappe.qb.from_(donation)
 		.select(Sum(donation.amount))
 		.where((donation.donor == customer) & (donation.docstatus == 1))
 		.run()[0][0]
 	)
-	frappe.db.set_value("Customer", customer, "lifetime_giving", flt(total), update_modified=False)
+	invoice = frappe.qb.DocType("Sales Invoice")
+	memberships = (
+		frappe.qb.from_(invoice)
+		.select(Sum(invoice.grand_total - invoice.outstanding_amount))
+		.where((invoice.customer == customer) & (invoice.docstatus == 1) & (invoice.is_membership == 1))
+		.run()[0][0]
+	)
+	frappe.db.set_value(
+		"Customer", customer, "lifetime_giving", flt(donations) + flt(memberships), update_modified=False
+	)
