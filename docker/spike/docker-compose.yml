@@ -1,0 +1,63 @@
+# M0 spike: throwaway ERPNext v16 bench to answer the open decisions in PRD §4.2 / §15.
+# Separate from the main dev environment (own project name and volumes).
+#
+#   cd docker/spike
+#   docker compose up            # first run ~20-30 min
+#   then read the report:  docker compose exec frappe cat /home/frappe/spike-report.md
+#
+# Fake, local-only passwords. Delete everything afterwards with:  docker compose down -v
+
+name: ataa-spike
+
+services:
+  mariadb:
+    image: mariadb:11.8          # v16 recommends MariaDB 11.8
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-character-set-client-handshake
+    environment:
+      MYSQL_ROOT_PASSWORD: spike_local_root
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  redis-cache:
+    image: redis:7-alpine
+
+  redis-queue:
+    image: redis:7-alpine
+
+  frappe:
+    image: frappe/bench:latest
+    command: bash /workspace/docker/spike/spike.sh
+    environment:
+      DB_ROOT_PASSWORD: spike_local_root
+      FRAPPE_BRANCH: ${FRAPPE_BRANCH:-version-16}
+      PYTHON_VERSION: ${PYTHON_VERSION:-3.14}
+      NODE_VERSION: ${NODE_VERSION:-24}
+      # Optional, for check 5 (token charge). Test keys only, never commit them:
+      #   set both in a local docker/spike/.env file (git-ignored), then docker compose up
+      MOYASAR_PUBLISHABLE_KEY: ${MOYASAR_PUBLISHABLE_KEY:-}
+      MOYASAR_SECRET_KEY: ${MOYASAR_SECRET_KEY:-}
+    ports:
+      - "8001:8000"
+      - "9001:9000"
+    volumes:
+      - ../..:/workspace:ro
+      - bench-home:/home/frappe
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis-cache:
+        condition: service_started
+      redis-queue:
+        condition: service_started
+
+volumes:
+  mariadb-data:
+  bench-home:

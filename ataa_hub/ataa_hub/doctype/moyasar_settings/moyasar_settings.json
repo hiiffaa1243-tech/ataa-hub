@@ -1,0 +1,74 @@
+{
+ "actions": [],
+ "creation": "2026-11-17 09:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "mode",
+  "publishable_key",
+  "secret_key",
+  "webhook_secret",
+  "section_help",
+  "webhook_help"
+ ],
+ "fields": [
+  {
+   "default": "Test",
+   "description": "الإصدار الحالي يعمل على بيئة الاختبار فقط.",
+   "fieldname": "mode",
+   "fieldtype": "Select",
+   "label": "البيئة",
+   "options": "Test",
+   "reqd": 1
+  },
+  {
+   "description": "يبدأ بـ pk_test_",
+   "fieldname": "publishable_key",
+   "fieldtype": "Data",
+   "label": "المفتاح العام (Publishable Key)"
+  },
+  {
+   "description": "يبدأ بـ sk_test_ — لا يُرسل للمتصفح أبداً.",
+   "fieldname": "secret_key",
+   "fieldtype": "Password",
+   "label": "المفتاح السري (Secret Key)"
+  },
+  {
+   "description": "نفس القيمة التي تضعينها في لوحة ميسّر عند إنشاء الـ Webhook.",
+   "fieldname": "webhook_secret",
+   "fieldtype": "Password",
+   "label": "سر الإشعارات (Webhook Secret)"
+  },
+  {
+   "fieldname": "section_help",
+   "fieldtype": "Section Break",
+   "label": "عنوان الإشعارات"
+  },
+  {
+   "fieldname": "webhook_help",
+   "fieldtype": "HTML",
+   "options": "<p>ضعي هذا العنوان في لوحة ميسّر (Webhooks) واختاري أحداث الدفع:</p><pre>https://&lt;your-site&gt;/api/method/ataa_hub.payments.moyasar_webhook</pre><p>يمكن أيضاً وضع المفاتيح في site_config.json بالأسماء <code>moyasar_publishable_key</code> و<code>moyasar_secret_key</code> و<code>moyasar_webhook_secret</code>.</p>"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-11-17 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ataa Hub",
+ "name": "Moyasar Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "permlevel": 0,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

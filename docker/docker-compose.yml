@@ -1,0 +1,61 @@
+# Local development environment for Ataa Hub (Frappe v15).
+#
+#   cd docker
+#   docker compose up
+#
+# First start takes ~10-15 minutes (bench init + site creation + demo data).
+# Then open http://localhost:8000  — the app folder is mounted live, edits apply immediately.
+# All passwords here are local-only development values.
+
+name: ataa-hub
+
+services:
+  mariadb:
+    image: mariadb:10.6
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-character-set-client-handshake
+      - --skip-innodb-read-only-compressed
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-ataa_local_root}
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  redis-cache:
+    image: redis:7-alpine
+
+  redis-queue:
+    image: redis:7-alpine
+
+  frappe:
+    image: frappe/bench:latest
+    command: bash /workspace/ataa_hub/docker/init.sh
+    environment:
+      DB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-ataa_local_root}
+      SITE_NAME: ${SITE_NAME:-ataa.localhost}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin}
+      FRAPPE_BRANCH: ${FRAPPE_BRANCH:-version-15}
+    ports:
+      - "8000:8000"   # web
+      - "9000:9000"   # socket.io (realtime)
+    volumes:
+      - ..:/workspace/ataa_hub
+      # Whole home dir: keeps the bench, pyenv and nvm from the image between restarts
+      - bench-home:/home/frappe
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis-cache:
+        condition: service_started
+      redis-queue:
+        condition: service_started
+
+volumes:
+  mariadb-data:
+  bench-home:

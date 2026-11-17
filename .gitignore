@@ -1,0 +1,9 @@
+.DS_Store
+*.pyc
+*.egg-info
+__pycache__/
+node_modules/
+.env
+site_config.json
+*.sqlite
+.ruff_cache/

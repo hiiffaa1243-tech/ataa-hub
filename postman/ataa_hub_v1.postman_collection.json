@@ -1,0 +1,799 @@
+{
+  "info": {
+    "_postman_id": "6f1c2b8e-1a7d-4d2a-9c11-0a7a7a7a2026",
+    "name": "Ataa Hub API v1",
+    "description": "Simulates an online store and a POS terminal sending donations to Ataa Hub.\nImport `ataa_hub_local.postman_environment.json`, run `bench ... execute ataa_hub.setup.demo.seed`, then Run collection. Every request has tests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "paid_at",
+      "value": ""
+    },
+    {
+      "key": "order_ref",
+      "value": ""
+    },
+    {
+      "key": "txn_ref",
+      "value": ""
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// paid_at = now, ISO 8601 with Riyadh offset",
+          "const d = new Date(Date.now() + 3 * 3600 * 1000);",
+          "pm.collectionVariables.set('paid_at', d.toISOString().slice(0, 19) + '+03:00');"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Online store",
+      "item": [
+        {
+          "name": "List active projects",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{store_api_key}}:{{store_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/method/ataa_hub.api.v1.list_projects",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "method",
+                "ataa_hub.api.v1.list_projects"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const data = pm.response.json().message.data;",
+                  "pm.test('returns active projects', () => pm.expect(data.length).to.be.above(0));",
+                  "pm.test('closed project hidden', () => pm.expect(data.map(p => p.project_code)).to.not.include('WINTER-06'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create donation (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{store_api_key}}:{{store_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "method",
+                "ataa_hub.api.v1.create_donation"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"{{order_ref}}\",\n  \"project_code\": \"SUQYA-01\",\n  \"amount\": 250.0,\n  \"paid_at\": \"{{paid_at}}\",\n  \"payment_reference\": \"pay_8f2c1a9b\",\n  \"donor\": {\n    \"name\": \"Test Donor\",\n    \"mobile\": \"+966500000001\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('order_ref', 'ORDER-' + Date.now());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "const d = pm.response.json().message.data;",
+                  "pm.test('not a duplicate', () => pm.expect(d.duplicate).to.eql(false));",
+                  "pm.test('status Paid', () => pm.expect(d.status).to.eql('Paid'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Retry same donation (200, no duplicate)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{store_api_key}}:{{store_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "method",
+                "ataa_hub.api.v1.create_donation"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"{{order_ref}}\",\n  \"project_code\": \"SUQYA-01\",\n  \"amount\": 250.0,\n  \"paid_at\": \"{{paid_at}}\",\n  \"payment_reference\": \"pay_8f2c1a9b\",\n  \"donor\": {\n    \"name\": \"Test Donor\",\n    \"mobile\": \"+966500000001\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Exactly the previous body again, as a store would send after a timeout."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('duplicate flag', () => pm.expect(pm.response.json().message.data.duplicate).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Same reference, different amount (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{store_api_key}}:{{store_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "method",
+                "ataa_hub.api.v1.create_donation"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"{{order_ref}}\",\n  \"project_code\": \"SUQYA-01\",\n  \"amount\": 999,\n  \"paid_at\": \"{{paid_at}}\",\n  \"payment_reference\": \"pay_8f2c1a9b\",\n  \"donor\": {\n    \"name\": \"Test Donor\",\n    \"mobile\": \"+966500000001\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+                  "pm.test('error code DUPLICATE_CONFLICT', () => pm.expect(pm.response.json().message.error.code).to.eql('DUPLICATE_CONFLICT'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get donation",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{store_api_key}}:{{store_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/method/ataa_hub.api.v1.get_donation??external_reference={{order_ref}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "method",
+                "ataa_hub.api.v1.get_donation"
+              ],
+              "query": [
+                {
+                  "key": "external_reference",
+                  "value": "{{order_ref}}"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. POS terminal",
+      "item": [
+        {
+          "name": "POS donation (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{pos_api_key}}:{{pos_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "method",
+                "ataa_hub.api.v1.create_donation"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"{{txn_ref}}\",\n  \"project_code\": \"WAFADA-02\",\n  \"amount\": 150.0,\n  \"paid_at\": \"{{paid_at}}\",\n  \"payment_reference\": \"AUTH-559201\",\n  \"pos\": {\n    \"terminal_id\": \"T01-HAJJ-EXPO\",\n    \"card_scheme\": \"mada\",\n    \"rrn\": \"432118005731\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('txn_ref', 'TXN-T01-' + Date.now());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POS without pos fields (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{pos_api_key}}:{{pos_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "method",
+                "ataa_hub.api.v1.create_donation"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"TXN-NO-POS-{{$timestamp}}\",\n  \"project_code\": \"WAFADA-02\",\n  \"amount\": 150.0,\n  \"paid_at\": \"{{paid_at}}\",\n  \"payment_reference\": \"AUTH-559201\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "pm.test('error code VALIDATION_ERROR', () => pm.expect(pm.response.json().message.error.code).to.eql('VALIDATION_ERROR'));",
+                  "pm.test('pos listed', () => pm.expect(pm.response.json().message.error.details).to.have.property('pos'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POS invalid RRN and scheme (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{pos_api_key}}:{{pos_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "method",
+                "ataa_hub.api.v1.create_donation"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"TXN-BAD-{{$timestamp}}\",\n  \"project_code\": \"WAFADA-02\",\n  \"amount\": 150.0,\n  \"paid_at\": \"{{paid_at}}\",\n  \"payment_reference\": \"AUTH-559201\",\n  \"pos\": {\n    \"terminal_id\": \"T01\",\n    \"card_scheme\": \"diners\",\n    \"rrn\": \"123\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "pm.test('error code VALIDATION_ERROR', () => pm.expect(pm.response.json().message.error.code).to.eql('VALIDATION_ERROR'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POS to a project it is not allowed (403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{pos_api_key}}:{{pos_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "method",
+                "ataa_hub.api.v1.create_donation"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"TXN-NA-{{$timestamp}}\",\n  \"project_code\": \"IFTAR-03\",\n  \"amount\": 150.0,\n  \"paid_at\": \"{{paid_at}}\",\n  \"payment_reference\": \"AUTH-559201\",\n  \"pos\": {\n    \"terminal_id\": \"T01-HAJJ-EXPO\",\n    \"card_scheme\": \"mada\",\n    \"rrn\": \"432118005731\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 403', () => pm.response.to.have.status(403));",
+                  "pm.test('error code PROJECT_NOT_ALLOWED', () => pm.expect(pm.response.json().message.error.code).to.eql('PROJECT_NOT_ALLOWED'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Error scenarios",
+      "item": [
+        {
+          "name": "Wrong key (401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{wrong_key}}:{{wrong_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "method",
+                "ataa_hub.api.v1.create_donation"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"{{order_ref}}\",\n  \"project_code\": \"SUQYA-01\",\n  \"amount\": 250.0,\n  \"paid_at\": \"{{paid_at}}\",\n  \"payment_reference\": \"pay_8f2c1a9b\",\n  \"donor\": {\n    \"name\": \"Test Donor\",\n    \"mobile\": \"+966500000001\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Missing key (401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/method/ataa_hub.api.v1.list_projects",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "method",
+                "ataa_hub.api.v1.list_projects"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  "pm.test('error code AUTH_REQUIRED', () => pm.expect(pm.response.json().message.error.code).to.eql('AUTH_REQUIRED'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deactivated client (403)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{inactive_api_key}}:{{inactive_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/method/ataa_hub.api.v1.list_projects",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "method",
+                "ataa_hub.api.v1.list_projects"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 403', () => pm.response.to.have.status(403));",
+                  "pm.test('error code CLIENT_INACTIVE', () => pm.expect(pm.response.json().message.error.code).to.eql('CLIENT_INACTIVE'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unknown project (404)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{store_api_key}}:{{store_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "method",
+                "ataa_hub.api.v1.create_donation"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"ORDER-404-{{$timestamp}}\",\n  \"project_code\": \"SUQYA-99\",\n  \"amount\": 250.0,\n  \"paid_at\": \"{{paid_at}}\",\n  \"payment_reference\": \"pay_8f2c1a9b\",\n  \"donor\": {\n    \"name\": \"Test Donor\",\n    \"mobile\": \"+966500000001\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+                  "pm.test('error code PROJECT_NOT_FOUND', () => pm.expect(pm.response.json().message.error.code).to.eql('PROJECT_NOT_FOUND'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Closed project (403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{store_api_key}}:{{store_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "method",
+                "ataa_hub.api.v1.create_donation"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"ORDER-403-{{$timestamp}}\",\n  \"project_code\": \"WINTER-06\",\n  \"amount\": 250.0,\n  \"paid_at\": \"{{paid_at}}\",\n  \"payment_reference\": \"pay_8f2c1a9b\",\n  \"donor\": {\n    \"name\": \"Test Donor\",\n    \"mobile\": \"+966500000001\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 403', () => pm.response.to.have.status(403));",
+                  "pm.test('error code PROJECT_INACTIVE', () => pm.expect(pm.response.json().message.error.code).to.eql('PROJECT_INACTIVE'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid fields (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{store_api_key}}:{{store_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "method",
+                "ataa_hub.api.v1.create_donation"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"ORDER-400-{{$timestamp}}\",\n  \"project_code\": \"SUQYA-01\",\n  \"amount\": 0,\n  \"currency\": \"USD\",\n  \"paid_at\": \"yesterday\",\n  \"donor\": {\n    \"mobile\": \"0500000000\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "pm.test('error code VALIDATION_ERROR', () => pm.expect(pm.response.json().message.error.code).to.eql('VALIDATION_ERROR'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unknown donation (404)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{store_api_key}}:{{store_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/method/ataa_hub.api.v1.get_donation??external_reference=DOES-NOT-EXIST",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "method",
+                "ataa_hub.api.v1.get_donation"
+              ],
+              "query": [
+                {
+                  "key": "external_reference",
+                  "value": "DOES-NOT-EXIST"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+                  "pm.test('error code DONATION_NOT_FOUND', () => pm.expect(pm.response.json().message.error.code).to.eql('DONATION_NOT_FOUND'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

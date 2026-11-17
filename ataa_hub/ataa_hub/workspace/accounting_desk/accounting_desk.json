@@ -1,0 +1,210 @@
+{
+ "charts": [
+  {
+   "chart_name": "Donations by Channel",
+   "label": "Donations by Channel"
+  },
+  {
+   "chart_name": "Monthly Donations",
+   "label": "Monthly Donations"
+  }
+ ],
+ "content": "[{\"id\": \"ataa000038\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>مراجعة التبرعات والمصروفات والمطابقة</b></span>\", \"col\": 12}}, {\"id\": \"ataa000039\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Pending Bank Transfers\", \"col\": 3}}, {\"id\": \"ataa000040\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Awaiting Accountant Review\", \"col\": 3}}, {\"id\": \"ataa000041\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Donations This Month\", \"col\": 3}}, {\"id\": \"ataa000042\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Total Collected\", \"col\": 3}}, {\"id\": \"ataa000043\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Donations by Channel\", \"col\": 6}}, {\"id\": \"ataa000044\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Monthly Donations\", \"col\": 6}}, {\"id\": \"ataa000045\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>متابعة سريعة</b></span>\", \"col\": 12}}, {\"id\": \"ataa000046\", \"type\": \"quick_list\", \"data\": {\"quick_list_name\": \"Bank Transfers to Verify\", \"col\": 4}}, {\"id\": \"ataa000047\", \"type\": \"quick_list\", \"data\": {\"quick_list_name\": \"Awaiting My Review\", \"col\": 4}}, {\"id\": \"ataa000048\", \"type\": \"quick_list\", \"data\": {\"quick_list_name\": \"Latest API Donations\", \"col\": 4}}, {\"id\": \"ataa000049\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>اختصارات</b></span>\", \"col\": 12}}, {\"id\": \"ataa000050\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"New Bank Transfer\", \"col\": 3}}, {\"id\": \"ataa000051\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Disbursement Request\", \"col\": 3}}, {\"id\": \"ataa000052\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Moyasar Reconciliation\", \"col\": 3}}, {\"id\": \"ataa000053\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Donor\", \"col\": 3}}, {\"id\": \"ataa000054\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>القوائم والتقارير</b></span>\", \"col\": 12}}, {\"id\": \"ataa000055\", \"type\": \"card\", \"data\": {\"card_name\": \"Donations\", \"col\": 4}}, {\"id\": \"ataa000056\", \"type\": \"card\", \"data\": {\"card_name\": \"Disbursement\", \"col\": 4}}, {\"id\": \"ataa000057\", \"type\": \"card\", \"data\": {\"card_name\": \"Reports\", \"col\": 4}}, {\"id\": \"ataa000058\", \"type\": \"card\", \"data\": {\"card_name\": \"Settings\", \"col\": 4}}]",
+ "creation": "2026-11-17 09:00:00.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "accounting",
+ "idx": 0,
+ "indicator_color": "",
+ "is_hidden": 0,
+ "label": "Accounting Desk",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Donations",
+   "link_count": 2,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Donation",
+   "link_count": 0,
+   "link_to": "Donation",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Donor",
+   "link_count": 0,
+   "link_to": "Donor",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Disbursement",
+   "link_count": 1,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Disbursement Request",
+   "link_count": 0,
+   "link_to": "Disbursement Request",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Reports",
+   "link_count": 3,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Donations by Project and Channel",
+   "link_count": 0,
+   "link_to": "Donations by Project and Channel",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Monthly Project Statement",
+   "link_count": 0,
+   "link_to": "Monthly Project Statement",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Moyasar Reconciliation",
+   "link_count": 0,
+   "link_to": "Moyasar Reconciliation",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Settings",
+   "link_count": 1,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Moyasar Settings",
+   "link_count": 0,
+   "link_to": "Moyasar Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-11-17 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ataa Hub",
+ "name": "Accounting Desk",
+ "number_cards": [
+  {
+   "label": "Pending Bank Transfers",
+   "number_card_name": "Pending Bank Transfers"
+  },
+  {
+   "label": "Awaiting Accountant Review",
+   "number_card_name": "Awaiting Accountant Review"
+  },
+  {
+   "label": "Donations This Month",
+   "number_card_name": "Donations This Month"
+  },
+  {
+   "label": "Total Collected",
+   "number_card_name": "Total Collected"
+  }
+ ],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [
+  {
+   "document_type": "Donation",
+   "label": "Bank Transfers to Verify",
+   "quick_list_filter": "[[\"Donation\", \"channel\", \"=\", \"Bank Transfer\", false], [\"Donation\", \"status\", \"=\", \"Pending\", false]]"
+  },
+  {
+   "document_type": "Disbursement Request",
+   "label": "Awaiting My Review",
+   "quick_list_filter": "[[\"Disbursement Request\", \"workflow_state\", \"in\", [\"Pending Accountant Review\", \"Approved\"], false]]"
+  },
+  {
+   "document_type": "Donation",
+   "label": "Latest API Donations",
+   "quick_list_filter": "[[\"Donation\", \"channel\", \"in\", [\"Online Store\", \"POS\", \"Partner\"], false]]"
+  }
+ ],
+ "roles": [
+  {
+   "role": "Donations Accountant"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
+ "sequence_id": 3.0,
+ "shortcuts": [
+  {
+   "color": "Green",
+   "doc_view": "New",
+   "label": "New Bank Transfer",
+   "link_to": "Donation",
+   "type": "DocType"
+  },
+  {
+   "color": "Orange",
+   "doc_view": "List",
+   "label": "Disbursement Request",
+   "link_to": "Disbursement Request",
+   "stats_filter": "{\"workflow_state\": \"Pending Accountant Review\"}",
+   "type": "DocType"
+  },
+  {
+   "color": "Red",
+   "label": "Moyasar Reconciliation",
+   "link_to": "Moyasar Reconciliation",
+   "type": "Report"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Donor",
+   "link_to": "Donor",
+   "type": "DocType"
+  }
+ ],
+ "title": "Accounting Desk"
+}

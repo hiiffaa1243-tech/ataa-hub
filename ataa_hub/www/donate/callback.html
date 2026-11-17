@@ -1,0 +1,31 @@
+{% extends "ataa_hub/templates/ataa_base.html" %}
+
+{% block title %}{% if success %}شكراً لتبرعك{% else %}حالة التبرع{% endif %} — عطاء{% endblock %}
+
+{% block content %}
+<section class="ataa-result {% if success %}ataa-result--ok{% else %}ataa-result--fail{% endif %}">
+	{% if success %}
+	<div class="ataa-result__icon" aria-hidden="true">✓</div>
+	<h1>جزاك الله خيراً، وصل تبرعك</h1>
+	<p>تم تسجيل تبرعك بمبلغ <strong>{{ amount_label }}</strong> لمشروع <strong>{{ project_title | e }}</strong>.</p>
+	<div class="ataa-receipt">
+		<span>رقم الإيصال</span>
+		<strong dir="ltr">{{ receipt }}</strong>
+	</div>
+	<a class="ataa-btn ataa-btn--primary" href="/donate/project?code={{ project_code | urlencode }}">شاهد أثر تبرعك</a>
+
+	{% elif reason == "verification_unavailable" %}
+	<div class="ataa-result__icon" aria-hidden="true">…</div>
+	<h1>نتحقق من عملية الدفع</h1>
+	<p>إذا اكتمل الدفع سيُسجَّل تبرعك تلقائياً خلال دقائق عبر إشعار بوابة الدفع.</p>
+	<a class="ataa-btn ataa-btn--ghost" href="/donate">العودة للمشاريع</a>
+
+	{% else %}
+	<div class="ataa-result__icon" aria-hidden="true">!</div>
+	<h1>لم تكتمل عملية الدفع</h1>
+	<p>لم يُخصم منك أي مبلغ لهذا التبرع. يمكنك المحاولة مرة أخرى.</p>
+	{% if receipt %}<p class="ataa-hint">مرجع التبرع: <span dir="ltr">{{ receipt }}</span></p>{% endif %}
+	<a class="ataa-btn ataa-btn--primary" href="{% if project_code %}/donate/project?code={{ project_code | urlencode }}{% else %}/donate{% endif %}">حاول مرة أخرى</a>
+	{% endif %}
+</section>
+{% endblock %}

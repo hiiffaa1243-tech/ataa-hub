@@ -1,0 +1,33 @@
+{% extends "ataa_hub/templates/ataa_blank.html" %}
+
+{% block title %}Ataa Hub API v1{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui.css">
+<style>
+	body { margin: 0; background: #fafafa; }
+	.ataa-topbar { display: flex; align-items: center; gap: 10px; padding: 12px 20px; background: #0f766e; color: #fff; font-family: system-ui, sans-serif; }
+	.ataa-topbar a { color: #fff; margin-inline-start: auto; font-size: 14px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ataa-topbar">
+	<img src="/assets/ataa_hub/images/ataa-logo.svg" width="28" height="28" alt="">
+	<strong>Ataa Hub — Donations Integration API v1</strong>
+	<a href="/donate">Donation page</a>
+</div>
+<div id="swagger"></div>
+{% endblock %}
+
+{% block script %}
+<script src="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-bundle.js"></script>
+<script>
+	SwaggerUIBundle({
+		url: "/assets/ataa_hub/openapi.yaml",
+		dom_id: "#swagger",
+		deepLinking: true,
+		tryItOutEnabled: true,
+	});
+</script>
+{% endblock %}
