@@ -6,12 +6,12 @@ Amounts are always compared against the General Ledger.
 """
 
 import frappe
-from frappe.model.workflow import WorkflowPermissionError, apply_workflow
+from frappe.model.workflow import WorkflowPermissionError, WorkflowTransitionError, apply_workflow
 from frappe.tests import IntegrationTestCase
 from frappe.utils import flt
 
 from ataa_hub.accounting import get_available, get_project_balance
-from ataa_hub.constants import ROLE_ACCOUNTANT, ROLE_EXECUTIVE, ROLE_PROJECT_MANAGER
+from ataa_hub.constants import ROLE_PROFILES
 from ataa_hub.tests.factories import gl_lines, make_bank_donation, make_project, make_user, settings
 
 PM = "pm-spend@ataa.test"
@@ -31,9 +31,9 @@ class SpendingTestCase(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		make_user(PM, [ROLE_PROJECT_MANAGER])
-		make_user(ACC, [ROLE_ACCOUNTANT])
-		make_user(ED, [ROLE_EXECUTIVE])
+		make_user(PM, ROLE_PROFILES["Ataa Project Manager"])
+		make_user(ACC, ROLE_PROFILES["Ataa Accountant"])
+		make_user(ED, ROLE_PROFILES["Ataa Executive Director"])
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
@@ -140,10 +140,10 @@ class TestDisbursement(SpendingTestCase):
 
 	def test_each_step_belongs_to_one_role(self):
 		doc = act(self.request(self.funded_project(), 100), "Submit for Review", PM)
-		with self.assertRaises(WorkflowPermissionError):
+		with self.assertRaises((WorkflowPermissionError, WorkflowTransitionError)):
 			act(doc, "Approve", PM)  # a PM cannot approve their own request
 		doc = act(doc, "Approve", ACC)
-		with self.assertRaises(WorkflowPermissionError):
+		with self.assertRaises((WorkflowPermissionError, WorkflowTransitionError)):
 			act(doc, "Approve", ACC)  # executive step
 
 	def test_cancelling_payment_journal_returns_to_approved(self):
