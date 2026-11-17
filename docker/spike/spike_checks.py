@@ -205,3 +205,18 @@ def moyasar_token_charge():
 	say(
 		f"Token charge (3ds:false): create status={payment.get('status')}, fetched status={fetched.get('status')}, message={fetched.get('source', {}).get('message')}"
 	)
+
+
+def subscription_second_invoice():
+	"""Why no second invoice next month? Test: unpaid first invoice vs past-due flag."""
+	sub = frappe.get_last_doc("Subscription", filters={"party": ("like", "%Spike Donor%")})
+	next_start = sub.current_invoice_start
+	say(
+		f"Sub {sub.name}: generate_new_invoices_past_due_date={sub.generate_new_invoices_past_due_date}, next period starts {next_start}"
+	)
+	sub.db_set("generate_new_invoices_past_due_date", 1)
+	sub.reload()
+	sub.process(posting_date=next_start)
+	frappe.db.commit()
+	sub.reload()
+	say(f"With flag=1, process({next_start}): status={sub.status}, invoices={_invoices(sub.name)}")

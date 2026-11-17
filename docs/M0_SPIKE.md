@@ -7,8 +7,28 @@ Goal: settle PRD decisions D5 (ZATCA app), D6 (ERPNext version), R2 (guest realt
 | Part | Status |
 |---|---|
 | Desk research on the ZATCA apps | **Done** (below) |
-| Spike environment (`docker/spike/`) | **Written**, syntax-checked, not run yet |
-| Running the spike | **Blocked**: Docker Desktop and WSL are not installed on the dev machine |
+| Spike environment (`docker/spike/`) | Done |
+| Spike run | **Done 2026-11-17** in GitHub Codespaces (4 cores / 16 GB), because the local PC has 8 GB RAM, ~9 GB free disk and a broken Virtual Machine Platform install |
+
+## Results
+
+| # | Check | Result |
+|---|---|---|
+| 0 | Python 3.14 + Node 24 | PASS |
+| 1a/1b | Frappe + ERPNext **16.60.0**, site created | PASS |
+| 2 | `ksa_compliance` install + migrate | PASS |
+| 3 | `zatca_erpgulf` install + migrate | PASS |
+| 4 | Subscription timing | PASS (after fixing the check's import path). First invoice created **and submitted on insert**, posting = due = start date; period fields then point to the next period. `process(posting_date)` exists. With `generate_new_invoices_past_due_date = 0` no new invoice while the previous is unpaid; with 1 the next invoice is created on the period start |
+| 5 | Guest socket.io | **Rejected**: "Missing cookie and authorization header" → public event screen uses polling |
+| 6 | Moyasar token charge | Skipped: no test keys yet |
+
+## Decisions (written into PRD v2.1)
+
+- **D6:** ERPNext v16.
+- **D5:** `ksa_compliance`; `zatca_erpgulf` fallback.
+- **R2:** public `/event/<code>` polls a cached endpoint every 5 s; staff desk pages use realtime.
+- **R3:** keep `generate_new_invoices_past_due_date = 0`; our daily job charges invoices that ERPNext creates.
+- **Q5:** open until Moyasar test keys are available (before M5).
 
 ## Research findings (2026-11-17)
 
