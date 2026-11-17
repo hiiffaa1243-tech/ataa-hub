@@ -102,5 +102,5 @@ def update_lifetime_giving(customer: str | None) -> None:
 	"""Recompute from submitted donations (memberships are added in M5)."""
 	if not customer:
 		return
-	total = frappe.db.get_value("Donation", {"donor": customer, "docstatus": 1}, "sum(amount)")
+	total = frappe.db.get_value("Donation", {"donor": customer, "docstatus": 1}, {"SUM": "amount"})
 	frappe.db.set_value("Customer", customer, "lifetime_giving", flt(total), update_modified=False)
