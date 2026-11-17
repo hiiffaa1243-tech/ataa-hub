@@ -1,5 +1,5 @@
 # Ataa Hub — Donations Integration API
-**Version:** v2 · **Status:** Draft for approval · **Audience:** developers of online stores, POS systems and partner platforms
+**Version:** v2 · **Status:** Implemented (M3) · **Audience:** developers of online stores, POS systems and partner platforms
 
 Supersedes v1 ([archive](docs/archive/v1/API-v1.md)). The URL path stays `ataa_hub.api.v1.*`: v2 only **adds** optional fields and two error codes, so existing v1 integrations keep working unchanged (see §11).
 
@@ -398,7 +398,7 @@ If the association later cancels (refunds) the donation, a retry of the same ref
   4. **Auth**: missing key (401), wrong key (401), inactive client (403), staff user (403).
   5. **Validation**: all-fields 400, POS fields, gift recipient rule, amount rules, timezone.
   6. **Project rules**: unknown (404), inactive (403), not allowed (403).
-- Demo keys and the `CLOCKTOWER-2026` event are created by the demo seed (local only, fake).
+- Demo keys and the `CLOCKTOWER-2026` event are created by `bench --site {site} execute ataa_hub.setup.demo_api.seed` (local sites only, fake keys). Run with `npx newman run postman/ataa_hub_v2.postman_collection.json -e postman/ataa_hub_local.postman_environment.json`.
 
 ---
 
