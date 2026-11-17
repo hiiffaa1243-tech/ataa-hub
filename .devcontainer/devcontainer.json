@@ -1,0 +1,23 @@
+{
+  // GitHub Codespaces / Dev Containers: a Linux machine with Docker, used to run
+  // the ERPNext bench (docker/spike for M0, docker/ for development).
+  "name": "Ataa Hub",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/python:1": { "version": "3.12" }
+  },
+  // ERPNext + MariaDB + Redis need about 6 GB RAM; 4-core / 16 GB machine.
+  "hostRequirements": { "cpus": 4, "memory": "16gb", "storage": "32gb" },
+  "forwardPorts": [8000, 8001, 9000, 9001],
+  "portsAttributes": {
+    "8000": { "label": "Ataa Hub (dev)" },
+    "8001": { "label": "M0 spike" }
+  },
+  "postCreateCommand": "pip install --user ruff",
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-python.python", "charliermarsh.ruff", "ms-azuretools.vscode-docker"]
+    }
+  }
+}

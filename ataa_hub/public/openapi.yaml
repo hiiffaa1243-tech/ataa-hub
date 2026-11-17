@@ -1,0 +1,261 @@
+openapi: 3.0.3
+info:
+  title: Ataa Hub — Donations Integration API
+  version: "1.0.0"
+  description: |
+    Report donations to a nonprofit **in real time** from any sales or payment channel
+    (online store, POS terminal, partner platform). Each donation is linked to a project,
+    updates the project balance instantly and appears on the association's dashboards.
+
+    **Quick start**
+    1. Ask the association for an API Client. You receive an `api_key` and an `api_secret`.
+    2. Call `list_projects` to get active projects and their `project_code`.
+    3. After every **successful** payment, call `create_donation` once.
+    4. On timeout or `500`, retry with the **same** `external_reference`: duplicates are never recorded.
+
+    Frappe wraps every response body in a `message` object.
+servers:
+  - url: http://localhost:8000
+    description: Local sandbox (fake data)
+  - url: https://{association_site}
+    description: Production (HTTPS required)
+    variables:
+      association_site:
+        default: ataa.example.org
+security:
+  - TokenAuth: []
+tags:
+  - name: Projects
+  - name: Donations
+
+paths:
+  /api/method/ataa_hub.api.v1.list_projects:
+    get:
+      tags: [Projects]
+      summary: List active projects
+      description: Projects that can currently receive donations. A client restricted to specific projects only sees those.
+      responses:
+        "200":
+          description: Active projects
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: object
+                    properties:
+                      ok: { type: boolean, example: true }
+                      data:
+                        type: array
+                        items: { $ref: "#/components/schemas/Project" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /api/method/ataa_hub.api.v1.create_donation:
+    post:
+      tags: [Donations]
+      summary: Create a donation (idempotent)
+      description: |
+        Call **once per successful payment**. The donation is recorded with status `Paid`.
+        The pair (your API Client + `external_reference`) is unique:
+
+        | You send | Result |
+        |---|---|
+        | New `external_reference` | `201`, `duplicate: false` |
+        | Same reference, same project and amount | `200`, `duplicate: true`, nothing new recorded |
+        | Same reference, different project or amount | `409 DUPLICATE_CONFLICT` |
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateDonation" }
+            examples:
+              online_store:
+                summary: Online store
+                value:
+                  external_reference: ORDER-100245
+                  project_code: SUQYA-01
+                  amount: 250.00
+                  paid_at: "2026-11-17T15:42:10+03:00"
+                  payment_reference: pay_8f2c1a9b
+                  donor: { name: Test Donor, mobile: "+966500000001" }
+              pos_terminal:
+                summary: POS terminal at an event
+                value:
+                  external_reference: TXN-T01-000731
+                  project_code: WAFADA-02
+                  amount: 150.00
+                  paid_at: "2026-11-17T16:05:44+03:00"
+                  payment_reference: AUTH-559201
+                  pos: { terminal_id: T01-HAJJ-EXPO, card_scheme: mada, rrn: "432118005731" }
+      responses:
+        "201":
+          description: Donation created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DonationEnvelope" }
+        "200":
+          description: Same donation sent again — returns the original, records nothing
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DonationEnvelope" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: external_reference already used with a different amount or project
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorEnvelope" }
+              example:
+                message:
+                  ok: false
+                  error:
+                    code: DUPLICATE_CONFLICT
+                    message: external_reference 'ORDER-100245' was already used with a different amount.
+                    details: { donation_id: DON-2026-00412, conflicting_fields: [amount] }
+        "500": { $ref: "#/components/responses/InternalError" }
+
+  /api/method/ataa_hub.api.v1.get_donation:
+    get:
+      tags: [Donations]
+      summary: Get a donation you sent
+      parameters:
+        - name: external_reference
+          in: query
+          required: true
+          schema: { type: string, maxLength: 140 }
+          example: ORDER-100245
+      responses:
+        "200":
+          description: The donation
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DonationEnvelope" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+components:
+  securitySchemes:
+    TokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: "Value: `token {api_key}:{api_secret}`. Call the API from your server only."
+
+  schemas:
+    Project:
+      type: object
+      properties:
+        project_code: { type: string, example: SUQYA-01 }
+        title: { type: string, example: سقيا ضيوف الرحمن }
+        target_amount: { type: number, example: 500000.00 }
+        collected_amount: { type: number, example: 312450.00 }
+        progress_percent: { type: number, example: 62.49 }
+        allow_custom_amount: { type: boolean, example: true }
+        donation_options:
+          type: array
+          items:
+            type: object
+            properties:
+              label: { type: string, example: سقيا 100 معتمر }
+              amount: { type: number, example: 100.00 }
+
+    CreateDonation:
+      type: object
+      required: [external_reference, project_code, amount, paid_at, payment_reference]
+      properties:
+        external_reference:
+          type: string
+          maxLength: 140
+          description: Your unique ID for this payment (order number, terminal transaction ID). Used to prevent duplicates.
+        project_code: { type: string, description: From list_projects. }
+        amount: { type: number, minimum: 0.01, description: "SAR, greater than 0, max 2 decimal places." }
+        currency: { type: string, enum: [SAR], default: SAR }
+        paid_at: { type: string, format: date-time, description: ISO 8601 with timezone. Cannot be in the future. }
+        payment_reference: { type: string, maxLength: 140, description: Payment ID from your gateway or terminal. }
+        donor:
+          type: object
+          description: Omit for anonymous donations.
+          properties:
+            name: { type: string, maxLength: 140 }
+            mobile: { type: string, pattern: '^\+9665\d{8}$', description: Used to match returning donors. }
+            email: { type: string, format: email }
+        pos:
+          type: object
+          description: Required when your client channel is POS.
+          required: [terminal_id, card_scheme, rrn]
+          properties:
+            terminal_id: { type: string }
+            card_scheme: { type: string, enum: [mada, visa, mastercard, amex] }
+            rrn: { type: string, pattern: '^[A-Za-z0-9]{12}$', description: Retrieval Reference Number. }
+        metadata: { type: object, additionalProperties: true, description: Stored for audit. Max 4 KB. }
+
+    Donation:
+      type: object
+      properties:
+        donation_id: { type: string, example: DON-2026-00412 }
+        status: { type: string, enum: [Pending, Paid, Failed, Refunded] }
+        project_code: { type: string, example: SUQYA-01 }
+        amount: { type: number, example: 250.00 }
+        external_reference: { type: string, example: ORDER-100245 }
+        duplicate: { type: boolean, description: Only on create_donation. }
+        received_at: { type: string, format: date-time }
+
+    DonationEnvelope:
+      type: object
+      properties:
+        message:
+          type: object
+          properties:
+            ok: { type: boolean, example: true }
+            data: { $ref: "#/components/schemas/Donation" }
+
+    ErrorEnvelope:
+      type: object
+      properties:
+        message:
+          type: object
+          properties:
+            ok: { type: boolean, example: false }
+            error:
+              type: object
+              properties:
+                code: { type: string }
+                message: { type: string }
+                details: { type: object, additionalProperties: true }
+
+  responses:
+    ValidationError:
+      description: "VALIDATION_ERROR — a field is missing or invalid. `details` lists each field. Do not retry unchanged."
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorEnvelope" }
+          example:
+            message:
+              ok: false
+              error:
+                code: VALIDATION_ERROR
+                message: Request has 2 invalid fields.
+                details: { amount: Must be greater than 0., pos.rrn: "Required for POS clients: exactly 12 letters or digits." }
+    Unauthorized:
+      description: "Missing (AUTH_REQUIRED) or wrong api_key / api_secret. A wrong key is rejected by the framework, so rely on the status code."
+    Forbidden:
+      description: "CLIENT_INACTIVE, NOT_AN_API_CLIENT, PROJECT_INACTIVE or PROJECT_NOT_ALLOWED."
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorEnvelope" }
+    NotFound:
+      description: "PROJECT_NOT_FOUND or DONATION_NOT_FOUND."
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorEnvelope" }
+    InternalError:
+      description: "INTERNAL_ERROR — retry later with the same external_reference."
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorEnvelope" }

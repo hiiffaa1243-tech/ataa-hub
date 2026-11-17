@@ -1,0 +1,273 @@
+{
+ "actions": [],
+ "autoname": "DON-.YYYY.-.#####",
+ "creation": "2026-11-17 09:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_donation",
+  "project",
+  "project_title",
+  "amount",
+  "column_break_donation",
+  "status",
+  "channel",
+  "paid_on",
+  "section_donor",
+  "donor",
+  "column_break_donor",
+  "donor_name",
+  "section_integration",
+  "api_client",
+  "external_reference",
+  "payment_reference",
+  "column_break_integration",
+  "terminal_id",
+  "card_scheme",
+  "rrn",
+  "section_bank",
+  "transfer_proof",
+  "section_refund",
+  "refund_reason",
+  "section_audit",
+  "raw_payload"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_donation",
+   "fieldtype": "Section Break",
+   "label": "التبرع"
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "المشروع",
+   "options": "Donation Project",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "project.title",
+   "fieldname": "project_title",
+   "fieldtype": "Data",
+   "label": "اسم المشروع",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "المبلغ (ريال)",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_donation",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "الحالة",
+   "options": "Pending\nPaid\nFailed\nRefunded",
+   "reqd": 1
+  },
+  {
+   "default": "Bank Transfer",
+   "fieldname": "channel",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "القناة",
+   "options": "Website\nOnline Store\nPOS\nBank Transfer\nPartner",
+   "reqd": 1
+  },
+  {
+   "fieldname": "paid_on",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "تاريخ الدفع"
+  },
+  {
+   "fieldname": "section_donor",
+   "fieldtype": "Section Break",
+   "label": "المتبرع"
+  },
+  {
+   "description": "اتركه فارغاً للتبرع مجهول الهوية.",
+   "fieldname": "donor",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "المتبرع",
+   "options": "Donor"
+  },
+  {
+   "fieldname": "column_break_donor",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "donor.full_name",
+   "fetch_if_empty": 1,
+   "fieldname": "donor_name",
+   "fieldtype": "Data",
+   "label": "اسم المتبرع"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_integration",
+   "fieldtype": "Section Break",
+   "label": "بيانات الربط والدفع"
+  },
+  {
+   "fieldname": "api_client",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "عميل الربط",
+   "options": "Donation API Client",
+   "read_only": 1
+  },
+  {
+   "description": "رقم الطلب في نظام الجهة المرسِلة (المتجر أو الجهاز).",
+   "fieldname": "external_reference",
+   "fieldtype": "Data",
+   "label": "المرجع الخارجي",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "description": "رقم العملية في بوابة الدفع أو رقم الحوالة البنكية.",
+   "fieldname": "payment_reference",
+   "fieldtype": "Data",
+   "label": "رقم عملية الدفع",
+   "no_copy": 1
+  },
+  {
+   "fieldname": "column_break_integration",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.channel=='POS'",
+   "fieldname": "terminal_id",
+   "fieldtype": "Data",
+   "label": "رقم الجهاز"
+  },
+  {
+   "depends_on": "eval:doc.channel=='POS'",
+   "fieldname": "card_scheme",
+   "fieldtype": "Data",
+   "label": "نوع البطاقة"
+  },
+  {
+   "depends_on": "eval:doc.channel=='POS'",
+   "fieldname": "rrn",
+   "fieldtype": "Data",
+   "label": "الرقم المرجعي (RRN)"
+  },
+  {
+   "depends_on": "eval:doc.channel=='Bank Transfer'",
+   "fieldname": "section_bank",
+   "fieldtype": "Section Break",
+   "label": "التحويل البنكي"
+  },
+  {
+   "description": "إجباري قبل تحويل الحالة إلى مدفوع.",
+   "fieldname": "transfer_proof",
+   "fieldtype": "Attach",
+   "label": "إثبات التحويل"
+  },
+  {
+   "depends_on": "eval:doc.status=='Refunded'",
+   "fieldname": "section_refund",
+   "fieldtype": "Section Break",
+   "label": "الاسترداد"
+  },
+  {
+   "fieldname": "refund_reason",
+   "fieldtype": "Small Text",
+   "label": "سبب الاسترداد",
+   "mandatory_depends_on": "eval:doc.status=='Refunded'"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_audit",
+   "fieldtype": "Section Break",
+   "label": "التدقيق"
+  },
+  {
+   "fieldname": "raw_payload",
+   "fieldtype": "Code",
+   "label": "الطلب الأصلي كما وصل",
+   "no_copy": 1,
+   "options": "JSON",
+   "permlevel": 1,
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-11-17 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ataa Hub",
+ "name": "Donation",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "permlevel": 0,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "export": 1,
+   "permlevel": 0,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Donations Accountant",
+   "write": 1
+  },
+  {
+   "export": 1,
+   "permlevel": 0,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Executive Director"
+  },
+  {
+   "permlevel": 0,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Project Manager"
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "System Manager"
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "Donations Accountant"
+  }
+ ],
+ "search_fields": "project,donor_name,external_reference,payment_reference",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "project_title",
+ "track_changes": 1
+}

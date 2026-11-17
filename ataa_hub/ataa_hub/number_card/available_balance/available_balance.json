@@ -1,0 +1,23 @@
+{
+ "aggregate_function_based_on": "available_balance",
+ "color": "#0F766E",
+ "creation": "2026-11-17 09:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Number Card",
+ "document_type": "Donation Project",
+ "dynamic_filters_json": "[]",
+ "filters_json": "[[\"Donation Project\", \"status\", \"in\", [\"Active\", \"Completed\"], false]]",
+ "function": "Sum",
+ "idx": 0,
+ "is_public": 1,
+ "is_standard": 1,
+ "label": "Available Balance",
+ "modified": "2026-11-17 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ataa Hub",
+ "name": "Available Balance",
+ "owner": "Administrator",
+ "show_percentage_stats": 1,
+ "stats_time_interval": "Monthly",
+ "type": "Document Type"
+}

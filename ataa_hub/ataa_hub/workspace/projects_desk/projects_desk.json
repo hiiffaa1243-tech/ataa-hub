@@ -1,0 +1,166 @@
+{
+ "charts": [
+  {
+   "chart_name": "Collected by Project",
+   "label": "Collected by Project"
+  }
+ ],
+ "content": "[{\"id\": \"ataa000021\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>مشاريعي: المجموع والمصروف والرصيد المتاح</b></span>\", \"col\": 12}}, {\"id\": \"ataa000022\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Active Projects\", \"col\": 3}}, {\"id\": \"ataa000023\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Total Collected\", \"col\": 3}}, {\"id\": \"ataa000024\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Available Balance\", \"col\": 3}}, {\"id\": \"ataa000025\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Open Disbursement Requests\", \"col\": 3}}, {\"id\": \"ataa000026\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Collected by Project\", \"col\": 12}}, {\"id\": \"ataa000027\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>متابعة سريعة</b></span>\", \"col\": 12}}, {\"id\": \"ataa000028\", \"type\": \"quick_list\", \"data\": {\"quick_list_name\": \"Latest Donations\", \"col\": 4}}, {\"id\": \"ataa000029\", \"type\": \"quick_list\", \"data\": {\"quick_list_name\": \"My Disbursement Requests\", \"col\": 4}}, {\"id\": \"ataa000030\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>اختصارات</b></span>\", \"col\": 12}}, {\"id\": \"ataa000031\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Donation Project\", \"col\": 3}}, {\"id\": \"ataa000032\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"New Disbursement Request\", \"col\": 3}}, {\"id\": \"ataa000033\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Donation\", \"col\": 3}}, {\"id\": \"ataa000034\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>القوائم والتقارير</b></span>\", \"col\": 12}}, {\"id\": \"ataa000035\", \"type\": \"card\", \"data\": {\"card_name\": \"Projects\", \"col\": 4}}, {\"id\": \"ataa000036\", \"type\": \"card\", \"data\": {\"card_name\": \"Disbursement\", \"col\": 4}}, {\"id\": \"ataa000037\", \"type\": \"card\", \"data\": {\"card_name\": \"Reports\", \"col\": 4}}]",
+ "creation": "2026-11-17 09:00:00.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "project",
+ "idx": 0,
+ "indicator_color": "",
+ "is_hidden": 0,
+ "label": "Projects Desk",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Projects",
+   "link_count": 2,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Donation Project",
+   "link_count": 0,
+   "link_to": "Donation Project",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Donation",
+   "link_count": 0,
+   "link_to": "Donation",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Disbursement",
+   "link_count": 1,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Disbursement Request",
+   "link_count": 0,
+   "link_to": "Disbursement Request",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Reports",
+   "link_count": 2,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Donations by Project and Channel",
+   "link_count": 0,
+   "link_to": "Donations by Project and Channel",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Monthly Project Statement",
+   "link_count": 0,
+   "link_to": "Monthly Project Statement",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-11-17 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ataa Hub",
+ "name": "Projects Desk",
+ "number_cards": [
+  {
+   "label": "Active Projects",
+   "number_card_name": "Active Projects"
+  },
+  {
+   "label": "Total Collected",
+   "number_card_name": "Total Collected"
+  },
+  {
+   "label": "Available Balance",
+   "number_card_name": "Available Balance"
+  },
+  {
+   "label": "Open Disbursement Requests",
+   "number_card_name": "Open Disbursement Requests"
+  }
+ ],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [
+  {
+   "document_type": "Donation",
+   "label": "Latest Donations",
+   "quick_list_filter": "[[\"Donation\", \"status\", \"=\", \"Paid\", false]]"
+  },
+  {
+   "document_type": "Disbursement Request",
+   "label": "My Disbursement Requests",
+   "quick_list_filter": "[]"
+  }
+ ],
+ "roles": [
+  {
+   "role": "Project Manager"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
+ "sequence_id": 2.0,
+ "shortcuts": [
+  {
+   "color": "Blue",
+   "doc_view": "List",
+   "label": "Donation Project",
+   "link_to": "Donation Project",
+   "type": "DocType"
+  },
+  {
+   "color": "Orange",
+   "doc_view": "New",
+   "label": "New Disbursement Request",
+   "link_to": "Disbursement Request",
+   "type": "DocType"
+  },
+  {
+   "color": "Green",
+   "doc_view": "List",
+   "label": "Donation",
+   "link_to": "Donation",
+   "type": "DocType"
+  }
+ ],
+ "title": "Projects Desk"
+}
