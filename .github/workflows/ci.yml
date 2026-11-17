@@ -11,19 +11,19 @@ concurrency:
 
 jobs:
   tests:
-    name: Server tests
-    runs-on: ubuntu-22.04
-    timeout-minutes: 40
+    name: Server tests (ERPNext v16)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
 
     services:
       redis-cache:
-        image: redis:alpine
+        image: redis:7-alpine
         ports: ["13000:6379"]
       redis-queue:
-        image: redis:alpine
+        image: redis:7-alpine
         ports: ["11000:6379"]
       mariadb:
-        image: mariadb:10.6
+        image: mariadb:11.8
         env:
           MYSQL_ROOT_PASSWORD: root
         ports: ["3306:3306"]
@@ -34,33 +34,35 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.14"
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 24
 
       - name: Lint (ruff)
         run: |
           pip install ruff
           ruff check ataa_hub
+          ruff format --check ataa_hub
 
       - name: Set up bench
         run: |
           sudo apt-get update && sudo apt-get install -y mariadb-client
           pip install frappe-bench
-          bench init --skip-redis-config-generation --skip-assets --frappe-branch version-15 --python "$(which python)" ~/frappe-bench
+          bench init --skip-redis-config-generation --skip-assets --frappe-branch version-16 --python "$(which python)" ~/frappe-bench
           mysql --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL character_set_server = 'utf8mb4'"
           mysql --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
 
-      - name: Install app
+      - name: Install ERPNext and Ataa Hub
         working-directory: /home/runner/frappe-bench
         run: |
+          bench get-app --branch version-16 erpnext
           bench get-app ataa_hub "$GITHUB_WORKSPACE"
           bench setup requirements --dev
           bench new-site --db-host 127.0.0.1 --db-root-password root --admin-password admin test_site
+          bench --site test_site install-app erpnext
           bench --site test_site install-app ataa_hub
-          bench build --app ataa_hub
         env:
           CI: "Yes"
 

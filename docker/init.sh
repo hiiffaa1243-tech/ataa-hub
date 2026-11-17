@@ -40,6 +40,7 @@ sed -i '/redis/d' ./Procfile
 
 # 2) Link this app (live edits from the host) and install it into the bench env
 [ -e apps/ataa_hub ] || ln -s "$APP_SRC" apps/ataa_hub
+sed -i -e '$a\' sites/apps.txt  # last line must end with a newline before appending
 grep -qx "ataa_hub" sites/apps.txt || echo "ataa_hub" >> sites/apps.txt
 uv pip install --quiet --python env/bin/python -e apps/ataa_hub
 
