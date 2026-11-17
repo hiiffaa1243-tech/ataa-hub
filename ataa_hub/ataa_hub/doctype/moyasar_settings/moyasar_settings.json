@@ -9,7 +9,12 @@
   "secret_key",
   "webhook_secret",
   "section_help",
-  "webhook_help"
+  "webhook_help",
+  "reconciliation_section",
+  "last_reconciled_on",
+  "reconciliation_issues",
+  "column_break_reconciliation",
+  "reconciliation_summary"
  ],
  "fields": [
   {
@@ -48,11 +53,40 @@
    "fieldname": "webhook_help",
    "fieldtype": "HTML",
    "options": "<p>ضعي هذا العنوان في لوحة ميسّر (Webhooks) واختاري أحداث الدفع:</p><pre>https://&lt;your-site&gt;/api/method/ataa_hub.payments.moyasar_webhook</pre><p>يمكن أيضاً وضع المفاتيح في site_config.json بالأسماء <code>moyasar_publishable_key</code> و<code>moyasar_secret_key</code> و<code>moyasar_webhook_secret</code>.</p>"
+  },
+  {
+   "fieldname": "reconciliation_section",
+   "fieldtype": "Section Break",
+   "label": "Daily Reconciliation",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "last_reconciled_on",
+   "fieldtype": "Datetime",
+   "label": "Last Reconciled On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reconciliation_issues",
+   "fieldtype": "Int",
+   "label": "Open Issues",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_reconciliation",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reconciliation_summary",
+   "fieldtype": "Code",
+   "label": "Last Result",
+   "options": "JSON",
+   "read_only": 1
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-11-17 09:00:00.000000",
+ "modified": "2026-11-19 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Ataa Hub",
  "name": "Moyasar Settings",

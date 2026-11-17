@@ -1,0 +1,100 @@
+{
+ "charts": [],
+ "content": "[{\"id\": \"h1\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>عطاء — المحاسب</b></span>\", \"col\": 12}}, {\"id\": \"nc0\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Ataa Bank Transfers To Verify\", \"col\": 4}}, {\"id\": \"nc1\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Ataa Requests To Review\", \"col\": 4}}, {\"id\": \"nc2\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Ataa Requests To Pay\", \"col\": 4}}, {\"id\": \"nc3\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Ataa Charges Needing Attention\", \"col\": 4}}, {\"id\": \"nc4\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Ataa Reconciliation Issues\", \"col\": 4}}, {\"id\": \"nc5\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Ataa Donations This Month\", \"col\": 4}}, {\"id\": \"h2\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>اختصارات</b></span>\", \"col\": 12}}, {\"id\": \"sc0\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"التبرعات\", \"col\": 3}}, {\"id\": \"sc1\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"طلبات الصرف\", \"col\": 3}}, {\"id\": \"sc2\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"محاولات خصم العضوية\", \"col\": 3}}, {\"id\": \"sc3\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"عملاء الربط\", \"col\": 3}}, {\"id\": \"sc4\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"مطابقة ميسّر\", \"col\": 3}}, {\"id\": \"sc5\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"التبرعات حسب المشروع والقناة\", \"col\": 3}}, {\"id\": \"sc6\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"دفتر الأستاذ\", \"col\": 3}}]",
+ "creation": "2026-11-19 10:00:00.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "money-coins-1",
+ "idx": 0,
+ "is_hidden": 0,
+ "label": "Ataa Accountant",
+ "links": [],
+ "modified": "2026-11-19 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ataa Hub",
+ "name": "Ataa Accountant",
+ "number_cards": [
+  {
+   "label": "تحويلات بنكية للتحقق",
+   "number_card_name": "Ataa Bank Transfers To Verify"
+  },
+  {
+   "label": "طلبات صرف للمراجعة",
+   "number_card_name": "Ataa Requests To Review"
+  },
+  {
+   "label": "طلبات معتمدة للصرف",
+   "number_card_name": "Ataa Requests To Pay"
+  },
+  {
+   "label": "عضويات تحتاج متابعة",
+   "number_card_name": "Ataa Charges Needing Attention"
+  },
+  {
+   "label": "فروقات مطابقة ميسّر",
+   "number_card_name": "Ataa Reconciliation Issues"
+  },
+  {
+   "label": "تبرعات هذا الشهر",
+   "number_card_name": "Ataa Donations This Month"
+  }
+ ],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "Donations Accountant"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
+ "sequence_id": 50.0,
+ "shortcuts": [
+  {
+   "label": "التبرعات",
+   "link_to": "Donation",
+   "type": "DocType",
+   "doc_view": "List"
+  },
+  {
+   "label": "طلبات الصرف",
+   "link_to": "Disbursement Request",
+   "type": "DocType",
+   "doc_view": "List"
+  },
+  {
+   "label": "محاولات خصم العضوية",
+   "link_to": "Membership Charge Attempt",
+   "type": "DocType",
+   "doc_view": "List"
+  },
+  {
+   "label": "عملاء الربط",
+   "link_to": "Donation API Client",
+   "type": "DocType",
+   "doc_view": "List"
+  },
+  {
+   "label": "مطابقة ميسّر",
+   "link_to": "Moyasar Reconciliation",
+   "type": "Report"
+  },
+  {
+   "label": "التبرعات حسب المشروع والقناة",
+   "link_to": "Donations by Project and Channel",
+   "type": "Report"
+  },
+  {
+   "label": "دفتر الأستاذ",
+   "link_to": "General Ledger",
+   "type": "Report"
+  }
+ ],
+ "title": "Ataa Accountant"
+}
