@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+	<meta charset="utf-8">
+	<style>
+		body { direction: rtl; text-align: right; font-family: "IBM Plex Sans Arabic", Tahoma, Arial, sans-serif; color: #1f2937; font-size: 12px; margin: 24px; }
+		h1 { color: #AD8F52; font-size: 22px; margin: 0; }
+		h2 { font-size: 15px; margin: 22px 0 6px; }
+		.muted { color: #6b7280; font-size: 11px; }
+		.head { border-bottom: 3px solid #AD8F52; padding-bottom: 10px; margin-bottom: 14px; }
+		table { width: 100%; border-collapse: collapse; }
+		th, td { padding: 6px 8px; border-bottom: 1px solid #e5e7eb; text-align: right; }
+		th { background: #f9f6ef; font-weight: 600; }
+		td.num, th.num { text-align: left; direction: ltr; }
+		.totals td { font-weight: 700; border-top: 2px solid #AD8F52; }
+	</style>
+</head>
+<body>
+	<div class="head">
+		<h1>كشف العطاء السنوي {{ s.year }}</h1>
+		<div>{{ s.customer_name }}</div>
+		<div class="muted">{{ s.company }} — صدر بتاريخ {{ frappe.utils.formatdate(s.generated_on, "dd-MM-yyyy") }} — كشف للعلم وليس فاتورة ضريبية</div>
+	</div>
+
+	<h2>التبرعات</h2>
+	{% if s.donations %}
+	<table>
+		<tr><th>التاريخ</th><th>رقم الإيصال</th><th>المشروع</th><th class="num">المبلغ (ر.س)</th></tr>
+		{% for d in s.donations %}
+		<tr>
+			<td>{{ frappe.utils.formatdate(d.posting_date, "dd-MM-yyyy") }}</td>
+			<td dir="ltr">{{ d.name }}</td>
+			<td>{{ d.project_title }}{% if d.is_gift %} (إهداء){% endif %}</td>
+			<td class="num">{{ frappe.utils.fmt_money(d.amount, precision=2) }}</td>
+		</tr>
+		{% endfor %}
+	</table>
+	{% else %}
+	<p class="muted">لا توجد تبرعات في هذه السنة.</p>
+	{% endif %}
+
+	<h2>اشتراكات العضوية المدفوعة</h2>
+	{% if s.memberships %}
+	<table>
+		<tr><th>التاريخ</th><th>رقم السند</th><th class="num">المبلغ (ر.س)</th></tr>
+		{% for m in s.memberships %}
+		<tr>
+			<td>{{ frappe.utils.formatdate(m.posting_date, "dd-MM-yyyy") }}</td>
+			<td dir="ltr">{{ m.name }}</td>
+			<td class="num">{{ frappe.utils.fmt_money(m.paid_amount, precision=2) }}</td>
+		</tr>
+		{% endfor %}
+	</table>
+	{% else %}
+	<p class="muted">لا توجد اشتراكات مدفوعة في هذه السنة.</p>
+	{% endif %}
+
+	<h2>الإجمالي</h2>
+	<table>
+		<tr><td>التبرعات</td><td class="num">{{ frappe.utils.fmt_money(s.total_donations, precision=2) }}</td></tr>
+		<tr><td>العضوية</td><td class="num">{{ frappe.utils.fmt_money(s.total_memberships, precision=2) }}</td></tr>
+		<tr class="totals"><td>المجموع</td><td class="num">{{ frappe.utils.fmt_money(s.total, currency="SAR") }}</td></tr>
+	</table>
+	<p class="muted">بيانات تجريبية لأغراض العرض.</p>
+</body>
+</html>

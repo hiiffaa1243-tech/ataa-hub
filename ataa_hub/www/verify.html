@@ -1,0 +1,26 @@
+{% extends "ataa_hub/templates/ataa_base.html" %}
+
+{% block title %}التحقق من إيصال — عطاء{% endblock %}
+
+{% block content %}
+<section class="ataa-result {% if receipt and receipt.valid %}ataa-result--ok{% else %}ataa-result--fail{% endif %}">
+	{% if receipt and receipt.valid %}
+	<div class="ataa-result__icon" aria-hidden="true">✓</div>
+	<h1>إيصال صحيح</h1>
+	<table class="ataa-table">
+		<tr><td>رقم الإيصال</td><td dir="ltr">{{ receipt.receipt }}</td></tr>
+		<tr><td>التاريخ</td><td>{{ frappe.utils.formatdate(receipt.date, "dd-MM-yyyy") }}</td></tr>
+		<tr><td>المشروع</td><td>{{ receipt.project_title | e }}</td></tr>
+		<tr><td>المبلغ</td><td>{{ frappe.utils.fmt_money(receipt.amount, currency="SAR") }}</td></tr>
+	</table>
+	{% elif receipt %}
+	<div class="ataa-result__icon" aria-hidden="true">!</div>
+	<h1>هذا الإيصال ملغى</h1>
+	<p>الإيصال <span dir="ltr">{{ receipt.receipt }}</span> أُلغي ولم يعد سارياً.</p>
+	{% else %}
+	<div class="ataa-result__icon" aria-hidden="true">!</div>
+	<h1>لم نجد هذا الإيصال</h1>
+	<p>تأكد من مسح الرمز من الإيصال الأصلي.</p>
+	{% endif %}
+</section>
+{% endblock %}

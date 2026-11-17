@@ -1,0 +1,18 @@
+{% extends "ataa_hub/templates/ataa_base.html" %}
+
+{% block title %}هدية خير — عطاء{% endblock %}
+
+{% block content %}
+<section class="ataa-gift">
+	<div class="ataa-result__icon" aria-hidden="true">🎁</div>
+	<h1>هدية خير إلى {{ gift.recipient_name | e }}</h1>
+	{% if gift.occasion %}<p>بمناسبة {{ _(gift.occasion) }}</p>{% endif %}
+	<p>تبرّع باسمك أحد محبيك لمشروع <strong>{{ gift.project_title | e }}</strong>.</p>
+	{% if gift.impact_units %}<p class="ataa-amount">{{ frappe.utils.fmt_money(gift.impact_units, precision=0) }} {{ gift.impact_unit_label or "" }}</p>{% endif %}
+	{% if gift.amount %}<p>بمبلغ {{ frappe.utils.fmt_money(gift.amount, currency="SAR") }}</p>{% endif %}
+	{% if gift.gift_message %}<blockquote>«{{ gift.gift_message | e }}»</blockquote>{% endif %}
+	{% if gift.project_code %}
+	<a class="ataa-btn ataa-btn--primary" href="/donate/project?code={{ gift.project_code | urlencode }}">شارك في المشروع</a>
+	{% endif %}
+</section>
+{% endblock %}
