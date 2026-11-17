@@ -38,13 +38,14 @@ def get_committed_amount(project: str) -> float:
 	"""Approved disbursements not yet paid. The DocType arrives in M4; until then 0."""
 	if not frappe.db.table_exists("Disbursement Request"):
 		return 0.0
-	return flt(
-		frappe.db.get_value(
-			"Disbursement Request",
-			{"project": project, "docstatus": 1, "workflow_state": "Approved"},
-			"sum(amount)",
-		)
+	dr = frappe.qb.DocType("Disbursement Request")
+	total = (
+		frappe.qb.from_(dr)
+		.select(Sum(dr.amount))
+		.where((dr.project == project) & (dr.docstatus == 1) & (dr.workflow_state == "Approved"))
+		.run()[0][0]
 	)
+	return flt(total)
 
 
 def get_donation_income_accounts() -> list[str]:
