@@ -75,3 +75,55 @@ def account(account_name):
 	return frappe.db.get_value(
 		"Account", {"company": company(), "account_name": account_name, "is_group": 0}, "name"
 	)
+
+
+def make_bank_donation(project, amount=100, submit=True, proof="/files/transfer-proof.pdf", **extra):
+	"""A bank-transfer donation as the accountant would record it in the desk."""
+	donation = frappe.get_doc(
+		{
+			"doctype": "Donation",
+			"project": project,
+			"amount": amount,
+			"channel": "Bank Transfer",
+			"transfer_proof": proof,
+			"payment_reference": unique("BANK"),
+			**extra,
+		}
+	).insert(ignore_permissions=True)
+	if submit:
+		donation.submit()
+	return donation
+
+
+def make_integration_donation(project, amount=100, channel="Online Store", submit=True, **extra):
+	donation = frappe.get_doc(
+		{"doctype": "Donation", "project": project, "amount": amount, "channel": channel, **extra}
+	)
+	donation.flags.from_integration = True
+	donation.insert(ignore_permissions=True)
+	if submit:
+		donation.submit()
+	return donation
+
+
+def gl_lines(voucher_no):
+	return frappe.get_all(
+		"GL Entry",
+		filters={"voucher_no": voucher_no, "is_cancelled": 0},
+		fields=["account", "debit", "credit", "project"],
+		order_by="debit desc",
+	)
+
+
+def make_user(email, roles):
+	if not frappe.db.exists("User", email):
+		frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": email,
+				"first_name": email.split("@")[0],
+				"send_welcome_email": 0,
+				"roles": [{"role": r} for r in roles],
+			}
+		).insert(ignore_permissions=True)
+	return email

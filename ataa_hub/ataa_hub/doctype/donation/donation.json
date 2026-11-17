@@ -1,0 +1,414 @@
+{
+ "actions": [],
+ "autoname": "naming_series:",
+ "creation": "2026-11-18 09:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "project",
+  "project_title",
+  "fund_type",
+  "column_break_main",
+  "amount",
+  "channel",
+  "mode_of_payment",
+  "payment_status",
+  "column_break_dates",
+  "posting_date",
+  "paid_at",
+  "company",
+  "donor_section",
+  "donor",
+  "donor_name",
+  "column_break_donor",
+  "donor_mobile",
+  "donor_email",
+  "bank_section",
+  "transfer_proof",
+  "column_break_bank",
+  "payment_reference",
+  "integration_section",
+  "api_client",
+  "external_reference",
+  "idempotency_key",
+  "column_break_integration",
+  "terminal_id",
+  "card_scheme",
+  "rrn",
+  "impact_section",
+  "impact_units",
+  "impact_unit_label",
+  "column_break_accounting",
+  "journal_entry",
+  "receipt_token",
+  "cancel_section",
+  "cancel_reason",
+  "amended_from",
+  "audit_section",
+  "raw_payload"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "DON-.YYYY.-",
+   "default": "DON-.YYYY.-",
+   "hidden": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "label": "Project",
+   "options": "Project",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "project_title",
+   "fieldtype": "Data",
+   "label": "Project Title",
+   "fetch_from": "project.project_name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "fund_type",
+   "fieldtype": "Data",
+   "label": "Fund Type",
+   "fetch_from": "project.fund_type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_main",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "label": "Amount (SAR)",
+   "reqd": 1,
+   "in_list_view": 1,
+   "non_negative": 1,
+   "bold": 1
+  },
+  {
+   "fieldname": "channel",
+   "fieldtype": "Select",
+   "label": "Channel",
+   "options": "Bank Transfer\nWebsite\nOnline Store\nPOS\nPartner",
+   "default": "Bank Transfer",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "mode_of_payment",
+   "fieldtype": "Link",
+   "label": "Mode of Payment",
+   "options": "Mode of Payment",
+   "read_only": 1
+  },
+  {
+   "fieldname": "payment_status",
+   "fieldtype": "Select",
+   "label": "Payment Status",
+   "options": "Awaiting Payment\nPaid\nFailed\nRefunded",
+   "default": "Awaiting Payment",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "allow_on_submit": 1,
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_dates",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "label": "Posting Date",
+   "default": "Today",
+   "reqd": 1
+  },
+  {
+   "fieldname": "paid_at",
+   "fieldtype": "Datetime",
+   "label": "Paid At",
+   "no_copy": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "donor_section",
+   "fieldtype": "Section Break",
+   "label": "Donor"
+  },
+  {
+   "fieldname": "donor",
+   "fieldtype": "Link",
+   "label": "Donor",
+   "options": "Customer",
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "donor_name",
+   "fieldtype": "Data",
+   "label": "Donor Name"
+  },
+  {
+   "fieldname": "column_break_donor",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "donor_mobile",
+   "fieldtype": "Data",
+   "label": "Mobile",
+   "options": "Phone"
+  },
+  {
+   "fieldname": "donor_email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "options": "Email"
+  },
+  {
+   "fieldname": "bank_section",
+   "fieldtype": "Section Break",
+   "label": "Bank Transfer",
+   "depends_on": "eval:doc.channel=='Bank Transfer'"
+  },
+  {
+   "fieldname": "transfer_proof",
+   "fieldtype": "Attach",
+   "label": "Transfer Proof",
+   "description": "Required before submitting: the bank statement line or transfer receipt."
+  },
+  {
+   "fieldname": "column_break_bank",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "payment_reference",
+   "fieldtype": "Data",
+   "label": "Payment / Bank Reference",
+   "no_copy": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "integration_section",
+   "fieldtype": "Section Break",
+   "label": "Integration",
+   "collapsible": 1,
+   "depends_on": "eval:doc.channel!='Bank Transfer'"
+  },
+  {
+   "fieldname": "api_client",
+   "fieldtype": "Link",
+   "label": "API Client",
+   "options": "Donation API Client",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "external_reference",
+   "fieldtype": "Data",
+   "label": "External Reference",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "idempotency_key",
+   "fieldtype": "Data",
+   "label": "Idempotency Key",
+   "unique": 1,
+   "description": "<api client>:<external reference> or moyasar:<payment id>. One donation per key.",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "column_break_integration",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "terminal_id",
+   "fieldtype": "Data",
+   "label": "Terminal ID",
+   "depends_on": "eval:doc.channel=='POS'",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "card_scheme",
+   "fieldtype": "Data",
+   "label": "Card Scheme",
+   "depends_on": "eval:doc.channel=='POS'",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "rrn",
+   "fieldtype": "Data",
+   "label": "RRN",
+   "depends_on": "eval:doc.channel=='POS'",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "impact_section",
+   "fieldtype": "Section Break",
+   "label": "Impact and Accounting"
+  },
+  {
+   "fieldname": "impact_units",
+   "fieldtype": "Float",
+   "label": "Impact Units",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "impact_unit_label",
+   "fieldtype": "Data",
+   "label": "Impact Unit",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "column_break_accounting",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "journal_entry",
+   "fieldtype": "Link",
+   "label": "Journal Entry",
+   "options": "Journal Entry",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "receipt_token",
+   "fieldtype": "Data",
+   "label": "Receipt Token",
+   "hidden": 1,
+   "unique": 1,
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "cancel_section",
+   "fieldtype": "Section Break",
+   "label": "Cancellation",
+   "collapsible": 1,
+   "depends_on": "eval:doc.docstatus>=1"
+  },
+  {
+   "fieldname": "cancel_reason",
+   "fieldtype": "Small Text",
+   "label": "Cancel / Refund Reason",
+   "allow_on_submit": 1,
+   "no_copy": 1,
+   "description": "Required to cancel. Cancelling reverses the journal entry."
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "options": "Donation",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "audit_section",
+   "fieldtype": "Section Break",
+   "label": "Raw Payload",
+   "collapsible": 1,
+   "permlevel": 1
+  },
+  {
+   "fieldname": "raw_payload",
+   "fieldtype": "Code",
+   "label": "Raw Payload",
+   "options": "JSON",
+   "permlevel": 1,
+   "read_only": 1,
+   "no_copy": 1
+  }
+ ],
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-11-18 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ataa Hub",
+ "name": "Donation",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Donations Accountant",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "Executive Director",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  },
+  {
+   "role": "Project Manager",
+   "read": 1,
+   "report": 1,
+   "print": 1
+  },
+  {
+   "role": "System Manager",
+   "permlevel": 1,
+   "read": 1
+  },
+  {
+   "role": "Donations Accountant",
+   "permlevel": 1,
+   "read": 1
+  }
+ ],
+ "search_fields": "project_title,donor_name,payment_reference",
+ "show_title_field_in_link": 0,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "project_title",
+ "track_changes": 1
+}
