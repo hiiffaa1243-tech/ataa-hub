@@ -193,3 +193,15 @@ class TestProjectManagerRows(IntegrationTestCase):
 			self.assertFalse(frappe.get_doc("Donation", their_donation).has_permission("read"))
 		finally:
 			frappe.set_user("Administrator")
+
+	def test_other_roles_are_not_restricted_by_the_row_rule(self):
+		"""Frappe v16: a has_permission hook returning None would deny everyone else."""
+		accountant = make_user("acc-rows@ataa.test", ["Donations Accountant"])
+		project = make_project().name
+		donation = make_bank_donation(project, 10).name
+		frappe.set_user(accountant)
+		try:
+			self.assertTrue(frappe.get_doc("Donation", donation).has_permission("read"))
+			self.assertTrue(frappe.get_doc("Project", project).has_permission("read"))
+		finally:
+			frappe.set_user("Administrator")
