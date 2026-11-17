@@ -14,7 +14,7 @@ Life cycle (Frappe docstatus, no custom status machine):
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import flt, now_datetime
+from frappe.utils import flt, get_url, now_datetime
 
 from ataa_hub.constants import CHANNEL_BANK_TRANSFER, CHANNEL_POS, FUND_UNRESTRICTED
 from ataa_hub.donors import update_lifetime_giving
@@ -56,6 +56,16 @@ class Donation(Document):
 		if self.donor and not self.donor_name:
 			self.donor_name = frappe.db.get_value("Customer", self.donor, "customer_name")
 
+		self.validate_gift()
+
+	def validate_gift(self):
+		if not self.is_gift:
+			return
+		if not (self.recipient_name or "").strip():
+			frappe.throw(_("اسم المُهدى إليه مطلوب في الإهداء."))
+		if not (self.recipient_mobile or self.recipient_email):
+			frappe.throw(_("أدخلي جوال المُهدى إليه أو بريده الإلكتروني."))
+
 	def validate_project(self):
 		project = frappe.db.get_value(
 			"Project",
@@ -88,6 +98,8 @@ class Donation(Document):
 		self.paid_at = self.paid_at or now_datetime()
 		self.freeze_impact()
 		self.receipt_token = self.receipt_token or frappe.generate_hash(length=32)
+		if self.is_gift:
+			self.gift_token = self.gift_token or frappe.generate_hash(length=32)
 
 	def freeze_impact(self):
 		"""Impact is fixed at the moment of giving; later rate changes don't rewrite history."""
@@ -101,6 +113,8 @@ class Donation(Document):
 		je = self.make_journal_entry()
 		self.db_set("journal_entry", je.name, update_modified=False)
 		update_lifetime_giving(self.donor)
+		if self.is_gift and self.recipient_email:
+			self.db_set("gift_email_sent", send_gift_email(self), update_modified=False)
 
 	def make_journal_entry(self):
 		settings = frappe.get_cached_doc("Ataa Settings")
@@ -158,6 +172,41 @@ class Donation(Document):
 	def on_trash(self):
 		if self.docstatus != 0:
 			frappe.throw(_("التبرع المستلم لا يُحذف. يمكن إلغاؤه مع ذكر السبب."), title=_("حذف غير مسموح"))
+
+
+def gift_url(token: str | None) -> str | None:
+	return get_url(f"/gift/{token}") if token else None
+
+
+def receipt_verification_url(token: str | None) -> str | None:
+	return get_url(f"/verify/{token}") if token else None
+
+
+def send_gift_email(donation) -> bool:
+	"""Queue the gift card email (the queue is part of the transaction, so a rollback drops it too).
+
+	Returns False when the site has no outgoing email account: the donor still has the link.
+	"""
+	try:
+		frappe.sendmail(
+			recipients=[donation.recipient_email],
+			subject=_("هدية خير باسمك 🎁"),
+			template="gift_card_email",
+			args={
+				"recipient_name": donation.recipient_name,
+				"donor_name": donation.donor_name or _("فاعل خير"),
+				"project_title": donation.project_title,
+				"occasion": _(donation.occasion or "Other"),
+				"gift_message": donation.gift_message,
+				"gift_url": gift_url(donation.gift_token),
+			},
+			reference_doctype=donation.doctype,
+			reference_name=donation.name,
+		)
+		return True
+	except frappe.OutgoingEmailError:
+		frappe.clear_last_message()
+		return False
 
 
 def get_mode_of_payment_account(mode_of_payment, company):

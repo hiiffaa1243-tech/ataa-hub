@@ -1,7 +1,10 @@
 """Small builders for test data. Fake data only."""
 
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+
 import frappe
-from frappe.utils import nowdate
+from frappe.utils import add_to_date, get_system_timezone, now_datetime, nowdate
 
 from ataa_hub.constants import FUND_RESTRICTED
 
@@ -127,3 +130,51 @@ def make_user(email, roles):
 			}
 		).insert(ignore_permissions=True)
 	return email
+
+
+def make_api_client(name: str, channel: str = "Online Store", active: int = 1, allowed=()):
+	"""allowed: Project names (not codes)."""
+	existing = frappe.db.get_value("Donation API Client", {"client_name": name})
+	if existing:
+		client = frappe.get_doc("Donation API Client", existing)
+		client.is_active = active
+		client.set("allowed_projects", [{"project": p} for p in allowed])
+		return client.save(ignore_permissions=True)
+	return frappe.get_doc(
+		{
+			"doctype": "Donation API Client",
+			"client_name": name,
+			"channel": channel,
+			"is_active": active,
+			"allowed_projects": [{"project": p} for p in allowed],
+		}
+	).insert(ignore_permissions=True)
+
+
+def make_event(code=None, projects=(), terminals=(), status="Active", hours_before=24, hours_after=24):
+	"""terminals: [(api_client_name, terminal_id), ...]. Window is now ± hours."""
+	code = code or unique("EVT")
+	return frappe.get_doc(
+		{
+			"doctype": "Fundraising Event",
+			"event_code": code,
+			"event_name": f"Test event {code}",
+			"location": "Test booth",
+			"status": status,
+			"start_datetime": add_to_date(now_datetime(), hours=-hours_before),
+			"end_datetime": add_to_date(now_datetime(), hours=hours_after),
+			"target_amount": 50000,
+			"projects": [{"project": p} for p in projects],
+			"terminals": [{"api_client": c, "terminal_id": t, "label": t} for c, t in terminals],
+		}
+	).insert(ignore_permissions=True)
+
+
+def iso_ago(hours: float = 1) -> str:
+	"""An ISO 8601 timestamp with timezone, `hours` in the past."""
+	moment = datetime.now(ZoneInfo(get_system_timezone())) - timedelta(hours=hours)
+	return moment.isoformat(timespec="seconds")
+
+
+def reference(prefix: str = "ORDER") -> str:
+	return f"{prefix}-{frappe.generate_hash(length=10)}"
