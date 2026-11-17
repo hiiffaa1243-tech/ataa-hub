@@ -1,0 +1,21 @@
+{% if rows %}
+<table class="ataa-table">
+	<tr><th>التاريخ</th><th>رقم الإيصال</th><th>المشروع</th><th>المبلغ</th><th></th></tr>
+	{% for r in rows %}
+	<tr class="{% if r.cancelled %}is-cancelled{% endif %}">
+		<td>{{ frappe.utils.formatdate(r.posting_date, "dd-MM-yyyy") }}</td>
+		<td dir="ltr">{{ r.name }}</td>
+		<td>{{ r.project_title | e }}{% if r.is_gift %} <span class="ataa-pill">إهداء</span>{% endif %}</td>
+		<td>{{ money(r.amount) }}</td>
+		<td class="ataa-actions">
+			{% if r.cancelled %}ملغى{% else %}
+			<a href="/api/method/ataa_hub.portal.giving.download_receipt?name={{ r.name | urlencode }}">إيصال PDF</a>
+			<a href="{{ r.verify_url }}" target="_blank" rel="noopener">تحقق</a>
+			{% endif %}
+		</td>
+	</tr>
+	{% endfor %}
+</table>
+{% else %}
+<p class="ataa-empty">لا توجد تبرعات.</p>
+{% endif %}

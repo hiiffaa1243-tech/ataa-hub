@@ -94,6 +94,10 @@ permission_query_conditions = {
 	"Donation": "ataa_hub.permissions.donation_query_conditions",
 	"Disbursement Request": "ataa_hub.permissions.disbursement_query_conditions",
 	"Fund Allocation": "ataa_hub.permissions.fund_allocation_query_conditions",
+	# Portal donors (Website Users) see only their own records (PRD §7.7)
+	"Sales Invoice": "ataa_hub.permissions.sales_invoice_query_conditions",
+	"Payment Entry": "ataa_hub.permissions.payment_entry_query_conditions",
+	"Donor Payment Method": "ataa_hub.permissions.payment_method_query_conditions",
 }
 
 has_permission = {
@@ -101,7 +105,27 @@ has_permission = {
 	"Donation": "ataa_hub.permissions.donation_has_permission",
 	"Disbursement Request": "ataa_hub.permissions.disbursement_has_permission",
 	"Fund Allocation": "ataa_hub.permissions.fund_allocation_has_permission",
+	"Sales Invoice": "ataa_hub.permissions.sales_invoice_has_permission",
+	"Payment Entry": "ataa_hub.permissions.payment_entry_has_permission",
+	"Donor Payment Method": "ataa_hub.permissions.payment_method_has_permission",
 }
 
 # Public donation page is the site's home page
 home_page = "donate"
+
+# Pretty public URLs (PRD §7.6, §7.7, §8.2)
+website_route_rules = [
+	{"from_route": "/gift/<token>", "to_route": "gift"},
+	{"from_route": "/verify/<token>", "to_route": "verify"},
+	{"from_route": "/my-giving", "to_route": "my_giving"},
+	{"from_route": "/my-giving/<section>", "to_route": "my_giving"},
+]
+
+# QR codes and links inside Jinja print formats
+jinja = {
+	"methods": [
+		"ataa_hub.utils.qr_data_uri",
+		"ataa_hub.ataa_hub.doctype.donation.donation.receipt_verification_url",
+		"ataa_hub.ataa_hub.doctype.donation.donation.gift_url",
+	]
+}
