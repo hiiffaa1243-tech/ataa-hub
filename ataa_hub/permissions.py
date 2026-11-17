@@ -7,6 +7,7 @@ donations, disbursement requests and fund allocations.
 
 `*_query_conditions` filter list views, reports and link searches.
 `*_has_permission` protect single documents (direct URL, save, print...).
+On Frappe v16 a hook must return True for "no objection": None counts as a denial.
 """
 
 import frappe
@@ -65,17 +66,17 @@ def fund_allocation_query_conditions(user: str | None = None) -> str:
 def project_has_permission(doc, ptype=None, user=None, **kwargs):
 	user = user or frappe.session.user
 	if not is_restricted_project_manager(user) or doc.is_new():
-		return None  # fall back to the normal role permissions
+		return True  # no extra rule; role permissions still decide
 	return doc.name in assigned_projects(user)
 
 
-def _doc_in_assigned_project(doc, field: str, user) -> bool | None:
+def _doc_in_assigned_project(doc, field: str, user) -> bool:
 	user = user or frappe.session.user
 	if not is_restricted_project_manager(user):
-		return None
+		return True
 	project = doc.get(field)
 	if doc.is_new() and not project:
-		return None  # empty new form: the project is checked again on save
+		return True  # empty new form: the project is checked again on save
 	return bool(project) and project in assigned_projects(user)
 
 
