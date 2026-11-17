@@ -1,0 +1,17 @@
+<div dir="rtl" style="font-family: Tahoma, Arial, sans-serif; text-align: right; line-height: 1.8;">
+	<p>السلام عليكم {{ customer_name }}،</p>
+	<p>هذا ما أنجزه عطاؤكم مع جمعية عطاء في شهر <span dir="ltr">{{ month }}</span>:</p>
+	<table style="border-collapse: collapse; width: 100%;">
+		{% for p in impact %}
+		<tr>
+			<td style="padding: 6px; border-bottom: 1px solid #eee;">{{ p.project_title }}</td>
+			<td style="padding: 6px; border-bottom: 1px solid #eee; color: #AD8F52; font-weight: bold;">
+				{% if p.units %}{{ frappe.utils.fmt_money(p.units, precision=0) }} {{ p.unit }}{% else %}{{ frappe.utils.fmt_money(p.amount, currency="SAR") }}{% endif %}
+			</td>
+		</tr>
+		{% endfor %}
+	</table>
+	{% if my_total %}<p>ومساهمتك أنت هذا الشهر: <strong>{{ frappe.utils.fmt_money(my_total, currency="SAR") }}</strong>. جزاك الله خيراً.</p>{% endif %}
+	<p><a href="{{ portal_url }}" style="color: #AD8F52;">صفحتي في عطاء</a></p>
+	<p style="color: #888; font-size: 12px;">جمعية عطاء (بيانات تجريبية)</p>
+</div>

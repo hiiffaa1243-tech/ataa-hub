@@ -26,6 +26,8 @@ add_to_apps_screen = [
 fixtures = [
 	{"dt": "Custom Field", "filters": [["module", "=", "Ataa Hub"]]},
 	{"dt": "Property Setter", "filters": [["module", "=", "Ataa Hub"]]},
+	# Workspace number cards (type Custom → ataa_hub.dashboards)
+	{"dt": "Number Card", "filters": [["module", "=", "Ataa Hub"]]},
 	{
 		"dt": "Role",
 		"filters": [
@@ -82,9 +84,15 @@ scheduler_events = {
 			"ataa_hub.memberships.charge_due_invoices",
 			"ataa_hub.memberships.close_ended_memberships",
 		],
-		"30 6 * * *": ["ataa_hub.memberships.resolve_stale_attempts"],
+		"30 6 * * *": [
+			"ataa_hub.memberships.resolve_stale_attempts",
+			"ataa_hub.reconciliation.run_daily",
+		],
 	},
-	"monthly": ["ataa_hub.memberships.evaluate_honorary"],
+	"monthly": [
+		"ataa_hub.memberships.evaluate_honorary",
+		"ataa_hub.impact.send_monthly_impact_emails",
+	],
 }
 
 # Executive Director's "grant Honorary" button
@@ -133,5 +141,6 @@ jinja = {
 		"ataa_hub.utils.qr_data_uri",
 		"ataa_hub.ataa_hub.doctype.donation.donation.receipt_verification_url",
 		"ataa_hub.ataa_hub.doctype.donation.donation.gift_url",
+		"ataa_hub.zatca.zatca_invoice_qr",
 	]
 }

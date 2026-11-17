@@ -1,0 +1,104 @@
+{
+ "charts": [],
+ "content": "[{\"id\": \"h1\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>عطاء — المدير التنفيذي</b></span>\", \"col\": 12}}, {\"id\": \"nc0\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Ataa Donations This Month\", \"col\": 4}}, {\"id\": \"nc1\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Ataa Active Members\", \"col\": 4}}, {\"id\": \"nc2\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Ataa MRR\", \"col\": 4}}, {\"id\": \"nc3\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Ataa Approvals Waiting\", \"col\": 4}}, {\"id\": \"nc4\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Ataa Restricted Balance\", \"col\": 4}}, {\"id\": \"nc5\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Ataa Unrestricted Balance\", \"col\": 4}}, {\"id\": \"h2\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>اختصارات</b></span>\", \"col\": 12}}, {\"id\": \"sc0\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"طلبات الصرف\", \"col\": 3}}, {\"id\": \"sc1\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"التخصيص من الصندوق العام\", \"col\": 3}}, {\"id\": \"sc2\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"الفعاليات\", \"col\": 3}}, {\"id\": \"sc3\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"كشف المشاريع الشهري\", \"col\": 3}}, {\"id\": \"sc4\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"تقرير العضويات\", \"col\": 3}}, {\"id\": \"sc5\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"التبرعات حسب المشروع والقناة\", \"col\": 3}}, {\"id\": \"sc6\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"أداء الفعاليات\", \"col\": 3}}, {\"id\": \"sc7\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"تقرير الأثر\", \"col\": 3}}]",
+ "creation": "2026-11-19 10:00:00.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "money-coins-1",
+ "idx": 0,
+ "is_hidden": 0,
+ "label": "Ataa Executive",
+ "links": [],
+ "modified": "2026-11-19 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ataa Hub",
+ "name": "Ataa Executive",
+ "number_cards": [
+  {
+   "label": "تبرعات هذا الشهر",
+   "number_card_name": "Ataa Donations This Month"
+  },
+  {
+   "label": "الأعضاء النشطون",
+   "number_card_name": "Ataa Active Members"
+  },
+  {
+   "label": "الإيراد الشهري المتكرر",
+   "number_card_name": "Ataa MRR"
+  },
+  {
+   "label": "موافقات بانتظارك",
+   "number_card_name": "Ataa Approvals Waiting"
+  },
+  {
+   "label": "رصيد المشاريع المقيدة",
+   "number_card_name": "Ataa Restricted Balance"
+  },
+  {
+   "label": "رصيد الصندوق العام",
+   "number_card_name": "Ataa Unrestricted Balance"
+  }
+ ],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "Executive Director"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
+ "sequence_id": 50.0,
+ "shortcuts": [
+  {
+   "label": "طلبات الصرف",
+   "link_to": "Disbursement Request",
+   "type": "DocType",
+   "doc_view": "List"
+  },
+  {
+   "label": "التخصيص من الصندوق العام",
+   "link_to": "Fund Allocation",
+   "type": "DocType",
+   "doc_view": "List"
+  },
+  {
+   "label": "الفعاليات",
+   "link_to": "Fundraising Event",
+   "type": "DocType",
+   "doc_view": "List"
+  },
+  {
+   "label": "كشف المشاريع الشهري",
+   "link_to": "Monthly Project Statement",
+   "type": "Report"
+  },
+  {
+   "label": "تقرير العضويات",
+   "link_to": "Membership Report",
+   "type": "Report"
+  },
+  {
+   "label": "التبرعات حسب المشروع والقناة",
+   "link_to": "Donations by Project and Channel",
+   "type": "Report"
+  },
+  {
+   "label": "أداء الفعاليات",
+   "link_to": "Event Performance",
+   "type": "Report"
+  },
+  {
+   "label": "تقرير الأثر",
+   "link_to": "Impact Report",
+   "type": "Report"
+  }
+ ],
+ "title": "Ataa Executive"
+}
