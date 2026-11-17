@@ -20,7 +20,7 @@ Goal: settle PRD decisions D5 (ZATCA app), D6 (ERPNext version), R2 (guest realt
 | 3 | `zatca_erpgulf` install + migrate | PASS |
 | 4 | Subscription timing | PASS (after fixing the check's import path). First invoice created **and submitted on insert**, posting = due = start date; period fields then point to the next period. `process(posting_date)` exists. With `generate_new_invoices_past_due_date = 0` no new invoice while the previous is unpaid; with 1 the next invoice is created on the period start |
 | 5 | Guest socket.io | **Rejected**: "Missing cookie and authorization header" → public event screen uses polling |
-| 6 | Moyasar token charge | Skipped: no test keys yet |
+| 6 | Moyasar token charge | PASS. Token from test card 4111… created with status `save_only` (no 3DS); charge with `3ds: false` → `paid`, message `APPROVED`. Keys supplied as Codespaces secrets, never in the repo |
 
 ## Decisions (written into PRD v2.1)
 
@@ -28,7 +28,9 @@ Goal: settle PRD decisions D5 (ZATCA app), D6 (ERPNext version), R2 (guest realt
 - **D5:** `ksa_compliance`; `zatca_erpgulf` fallback.
 - **R2:** public `/event/<code>` polls a cached endpoint every 5 s; staff desk pages use realtime.
 - **R3:** keep `generate_new_invoices_past_due_date = 0`; our daily job charges invoices that ERPNext creates.
-- **Q5:** open until Moyasar test keys are available (before M5).
+- **Q5:** closed. Merchant-initiated token charges with `3ds: false` work in test mode.
+
+Moyasar test keys live in Codespaces secrets `MOYASAR_PUBLISHABLE_KEY` / `MOYASAR_SECRET_KEY` (repo-scoped). After changing a secret, restart the Codespace.
 
 ## Research findings (2026-11-17)
 
