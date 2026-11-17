@@ -86,3 +86,14 @@ PAID_TIERS = {
 }
 
 MEMBERSHIP_STATUSES = ("Active", "Payment Pending", "Suspended", "Cancelled")
+
+# ------------------------------------------ spending workflows (PRD §7.8, §7.9)
+DSB_WORKFLOW = "Disbursement Approval"
+FAL_WORKFLOW = "Fund Allocation Approval"
+
+STATE_DRAFT = "Draft"
+STATE_PENDING_ACCOUNTANT = "Pending Accountant Review"
+STATE_PENDING_EXECUTIVE = "Pending Executive Approval"
+STATE_APPROVED = "Approved"
+STATE_REJECTED = "Rejected"
+STATE_PAID = "Paid"

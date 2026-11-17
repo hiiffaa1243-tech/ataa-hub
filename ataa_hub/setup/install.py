@@ -9,21 +9,25 @@ import frappe
 
 from ataa_hub.setup.company import setup_company
 from ataa_hub.setup.wizard import complete_setup_wizard
+from ataa_hub.setup.workflows import setup_workflows
 
 
 def after_install():
 	set_site_defaults()
 	setup_company()
+	setup_workflows()
 
 
 def after_migrate():
 	setup_company()
+	setup_workflows()
 
 
 def before_tests():
 	"""Tests need a finished ERPNext setup with a SAR company and our records."""
 	complete_setup_wizard()
 	setup_company()
+	setup_workflows()
 	frappe.db.commit()
 
 

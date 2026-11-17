@@ -55,6 +55,7 @@ doc_events = {
 	"Journal Entry": {
 		"validate": "ataa_hub.overrides.journal_entry.validate",
 		"before_cancel": "ataa_hub.overrides.journal_entry.before_cancel",
+		"on_cancel": "ataa_hub.overrides.journal_entry.on_cancel",
 	},
 }
 
@@ -65,11 +66,15 @@ doc_events = {
 permission_query_conditions = {
 	"Project": "ataa_hub.permissions.project_query_conditions",
 	"Donation": "ataa_hub.permissions.donation_query_conditions",
+	"Disbursement Request": "ataa_hub.permissions.disbursement_query_conditions",
+	"Fund Allocation": "ataa_hub.permissions.fund_allocation_query_conditions",
 }
 
 has_permission = {
 	"Project": "ataa_hub.permissions.project_has_permission",
 	"Donation": "ataa_hub.permissions.donation_has_permission",
+	"Disbursement Request": "ataa_hub.permissions.disbursement_has_permission",
+	"Fund Allocation": "ataa_hub.permissions.fund_allocation_has_permission",
 }
 
 # Public donation page is the site's home page
