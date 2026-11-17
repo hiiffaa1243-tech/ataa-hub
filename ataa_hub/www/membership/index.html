@@ -1,0 +1,71 @@
+{% extends "ataa_hub/templates/ataa_base.html" %}
+
+{% block title %}العضوية الشهرية — عطاء{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdn.moyasar.com/mpf/{{ moyasar_version }}/moyasar.css">
+<script src="https://cdn.moyasar.com/mpf/{{ moyasar_version }}/moyasar.js"></script>
+{% endblock %}
+
+{% block content %}
+<section class="ataa-hero">
+	<h1>كن عضواً في عطاء</h1>
+	<p>اشتراك شهري يدعم الصندوق العام، يُخصم تلقائياً من بطاقتك المحفوظة لدى ميسّر، ويمكنك تغييره أو إلغاؤه متى شئت.</p>
+</section>
+
+{% if current and current.membership_status and current.membership_status != "Cancelled" %}
+<p class="ataa-notice">لديك عضوية {{ current.membership_tier or "" }} حالتها: {{ _(current.membership_status) }}. يمكنك إدارتها من <a href="/my-giving">صفحتي</a>.</p>
+{% else %}
+<div class="ataa-project">
+	<section class="ataa-panel">
+		<form id="membership-form" class="ataa-form" novalidate>
+			<h2>اختر المستوى</h2>
+			<div class="ataa-options" role="radiogroup">
+				{% for t in tiers %}
+				<label class="ataa-option" style="border-inline-start: 4px solid {{ t.colour }}">
+					<input type="radio" name="tier" value="{{ t.tier }}" {% if loop.first %}checked{% endif %}>
+					<span class="ataa-option__amount">{{ t.amount_label }} / شهرياً</span>
+					<span class="ataa-option__label">{{ t.label | e }}</span>
+				</label>
+				{% endfor %}
+			</div>
+
+			{% if not logged_in %}
+			<label class="ataa-field">
+				<span>الاسم</span>
+				<input type="text" id="full-name" maxlength="140" autocomplete="name" required>
+			</label>
+			<label class="ataa-field">
+				<span>البريد الإلكتروني <small>(للدخول إلى صفحة عضويتك)</small></span>
+				<input type="email" id="email" dir="ltr" autocomplete="email" required>
+			</label>
+			<label class="ataa-field">
+				<span>الجوال</span>
+				<input type="tel" id="mobile" dir="ltr" placeholder="+9665XXXXXXXX" autocomplete="tel" required>
+			</label>
+			{% endif %}
+
+			<p class="ataa-error" id="form-error" role="alert" hidden></p>
+
+			{% if payments_ready %}
+			<button type="submit" class="ataa-btn ataa-btn--primary ataa-btn--block" id="continue-btn">متابعة للدفع</button>
+			{% else %}
+			<p class="ataa-notice">بوابة الدفع غير مهيأة بعد. على مدير النظام إضافة مفاتيح ميسّر التجريبية من «إعدادات ميسّر».</p>
+			{% endif %}
+		</form>
+
+		<div id="payment-step" hidden>
+			<h2>الدفع وحفظ البطاقة</h2>
+			<p class="ataa-summary" id="payment-summary"></p>
+			<div class="mysr-form"></div>
+			<p class="ataa-hint">تُحفظ بطاقتك لدى ميسّر فقط (رمز مميّز)، ولا نخزّن رقمها. بيئة اختبار: 4111 1111 1111 1111.</p>
+			<button type="button" class="ataa-btn ataa-btn--ghost" id="back-btn">تغيير المستوى</button>
+		</div>
+	</section>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block script %}
+<script src="/assets/ataa_hub/js/membership.js"></script>
+{% endblock %}

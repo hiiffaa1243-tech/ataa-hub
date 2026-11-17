@@ -57,7 +57,33 @@ doc_events = {
 		"before_cancel": "ataa_hub.overrides.journal_entry.before_cancel",
 		"on_cancel": "ataa_hub.overrides.journal_entry.on_cancel",
 	},
+	# Memberships (PRD §7.5, §9.1)
+	"Subscription": {"on_update": "ataa_hub.memberships.on_subscription_update"},
+	"Sales Invoice": {"validate": "ataa_hub.memberships.on_sales_invoice_validate"},
+	"Payment Entry": {
+		"validate": "ataa_hub.memberships.on_payment_entry_validate",
+		"on_submit": "ataa_hub.memberships.on_payment_entry_change",
+		"on_cancel": "ataa_hub.memberships.on_payment_entry_change",
+	},
 }
+
+# ---------------------------------------------------------------------------
+# Jobs (PRD §9.2). Charging runs at 06:00, after ERPNext's own daily
+# Subscription job has created the month's invoices.
+# ---------------------------------------------------------------------------
+scheduler_events = {
+	"cron": {
+		"0 6 * * *": [
+			"ataa_hub.memberships.charge_due_invoices",
+			"ataa_hub.memberships.close_ended_memberships",
+		],
+		"30 6 * * *": ["ataa_hub.memberships.resolve_stale_attempts"],
+	},
+	"monthly": ["ataa_hub.memberships.evaluate_honorary"],
+}
+
+# Executive Director's "grant Honorary" button
+doctype_js = {"Customer": "public/js/customer.js"}
 
 # ---------------------------------------------------------------------------
 # Row-level security: a Project Manager only sees the projects they are

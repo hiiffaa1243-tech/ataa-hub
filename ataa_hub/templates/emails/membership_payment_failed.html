@@ -1,0 +1,11 @@
+<div dir="rtl" style="font-family: Tahoma, Arial, sans-serif; text-align: right; line-height: 1.8;">
+	<p>السلام عليكم {{ customer_name }}،</p>
+	{% if suspended %}
+	<p>تعذّر خصم اشتراك عضويتك ({{ amount }}) بعد ثلاث محاولات، <strong>فأوقفنا العضوية مؤقتاً</strong>.</p>
+	{% else %}
+	<p>تعذّر خصم اشتراك عضويتك ({{ amount }}). سنحاول مرة أخرى{% if next_retry_on %} يوم <span dir="ltr">{{ next_retry_on }}</span>{% endif %}.</p>
+	{% endif %}
+	<p>يمكنك تحديث بطاقتك وسنعيد المحاولة فوراً:</p>
+	<p><a href="{{ update_card_url }}" style="color: #AD8F52;">تحديث البطاقة</a></p>
+	<p style="color: #888; font-size: 12px;">جمعية عطاء (بيانات تجريبية)</p>
+</div>
