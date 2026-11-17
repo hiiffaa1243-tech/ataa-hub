@@ -1,0 +1,55 @@
+{% extends "ataa_hub/templates/ataa_blank.html" %}
+
+{% block lang %}ar{% endblock %}
+{% block title %}{{ feed.event_name | e }} — عطاء{% endblock %}
+
+{% block head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="/assets/ataa_hub/css/event.css">
+{% endblock %}
+
+{% block content %}
+<main class="ev" dir="rtl" data-code="{{ feed.event_code | e }}">
+	<header class="ev__head">
+		<div class="ev__brand">
+			<img src="/assets/ataa_hub/images/ataa-logo.svg" alt="" width="56" height="56">
+			<div>
+				<h1 id="ev-name">{{ feed.event_name | e }}</h1>
+				<p id="ev-location">{{ feed.location or "" }}</p>
+			</div>
+		</div>
+		<div class="ev__live"><span class="ev__dot" id="ev-dot"></span><span id="ev-updated">{{ feed.updated_at }}</span></div>
+	</header>
+
+	<section class="ev__total">
+		<div class="ev__amount"><span id="ev-total">{{ frappe.utils.fmt_money(feed.total, precision=0) }}</span> <small>ر.س</small></div>
+		<div class="ev__meta">
+			<span>من هدف <strong id="ev-target">{{ frappe.utils.fmt_money(feed.target, precision=0) }}</strong> ر.س</span>
+			<span><strong id="ev-count">{{ feed.count }}</strong> تبرع</span>
+			<span>آخر ساعة: <strong id="ev-hour">{{ frappe.utils.fmt_money(feed.last_hour, precision=0) }}</strong> ر.س</span>
+		</div>
+		<div class="ev__bar"><div class="ev__fill" id="ev-fill" style="width: {{ feed.progress or 0 }}%"></div></div>
+		<div class="ev__pct" id="ev-pct">{{ feed.progress or 0 }}%</div>
+	</section>
+
+	<section class="ev__grid">
+		<div class="ev__panel ev__panel--feed">
+			<h2>آخر التبرعات</h2>
+			<ul id="ev-latest" class="ev__latest"></ul>
+		</div>
+		<div class="ev__panel">
+			<h2>حسب المشروع</h2>
+			<ul id="ev-projects" class="ev__list"></ul>
+			<h2>حسب الجهاز</h2>
+			<ul id="ev-terminals" class="ev__list"></ul>
+		</div>
+	</section>
+	<footer class="ev__foot">تبرّع بالبطاقة على أجهزة نقاط البيع — لا تُعرض أسماء المتبرعين</footer>
+</main>
+{% endblock %}
+
+{% block script %}
+<script>window.ATAA_EVENT_FEED = {{ feed | json | replace("</", "<\/") }};</script>
+<script src="/assets/ataa_hub/js/event.js"></script>
+{% endblock %}

@@ -74,3 +74,15 @@ def verify_page(token: str | None) -> frappe._dict | None:
 		project_title=row.project_title,
 		valid=row.docstatus == 1,
 	)
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+def event_feed(event_code: str | None = None):
+	"""Polled every 5 s by /event/<code>. Cached; no donor data (PRD §7.3)."""
+	from ataa_hub.events import get_event_feed
+
+	feed = get_event_feed(event_code)
+	if not feed:
+		frappe.local.response["http_status_code"] = 404
+		return {"error": "not_found"}
+	return feed

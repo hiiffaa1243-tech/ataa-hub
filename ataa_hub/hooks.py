@@ -57,6 +57,11 @@ doc_events = {
 		"before_cancel": "ataa_hub.overrides.journal_entry.before_cancel",
 		"on_cancel": "ataa_hub.overrides.journal_entry.on_cancel",
 	},
+	# Event live screen: clear its cache and notify staff views (PRD §7.3)
+	"Donation": {
+		"on_submit": "ataa_hub.events.on_donation_change",
+		"on_cancel": "ataa_hub.events.on_donation_change",
+	},
 	# Memberships (PRD §7.5, §9.1)
 	"Subscription": {"on_update": "ataa_hub.memberships.on_subscription_update"},
 	"Sales Invoice": {"validate": "ataa_hub.memberships.on_sales_invoice_validate"},
@@ -117,6 +122,7 @@ home_page = "donate"
 website_route_rules = [
 	{"from_route": "/gift/<token>", "to_route": "gift"},
 	{"from_route": "/verify/<token>", "to_route": "verify"},
+	{"from_route": "/event/<event_code>", "to_route": "event"},
 	{"from_route": "/my-giving", "to_route": "my_giving"},
 	{"from_route": "/my-giving/<section>", "to_route": "my_giving"},
 ]
