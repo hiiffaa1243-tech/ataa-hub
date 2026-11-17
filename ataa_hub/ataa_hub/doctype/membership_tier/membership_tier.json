@@ -1,0 +1,70 @@
+{
+ "actions": [],
+ "creation": "2026-11-17 22:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "tier",
+  "label_ar",
+  "monthly_amount",
+  "colour",
+  "item",
+  "subscription_plan"
+ ],
+ "fields": [
+  {
+   "fieldname": "tier",
+   "fieldtype": "Select",
+   "label": "Tier",
+   "options": "Bronze\nSilver\nGold\nPlatinum",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "label_ar",
+   "fieldtype": "Data",
+   "label": "Arabic Name",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "monthly_amount",
+   "fieldtype": "Currency",
+   "label": "Monthly Amount (SAR)",
+   "reqd": 1,
+   "in_list_view": 1,
+   "non_negative": 1
+  },
+  {
+   "fieldname": "colour",
+   "fieldtype": "Color",
+   "label": "Card Colour"
+  },
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "label": "Item",
+   "options": "Item",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "subscription_plan",
+   "fieldtype": "Link",
+   "label": "Subscription Plan",
+   "options": "Subscription Plan",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-11-17 22:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ataa Hub",
+ "name": "Membership Tier",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "istable": 1,
+ "editable_grid": 1
+}
