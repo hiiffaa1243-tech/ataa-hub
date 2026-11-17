@@ -56,6 +56,8 @@ if [ ! -d "sites/$SITE" ]; then
   bench --site "$SITE" set-config developer_mode 1
   bench --site "$SITE" set-config allow_tests true
   bench --site "$SITE" execute ataa_hub.setup.wizard.complete_setup_wizard
+  # Fake demo data (users, donors, donations, requests, members). DEMO_DATA=0 skips it.
+  [ "${DEMO_DATA:-1}" = "0" ] || bench --site "$SITE" execute ataa_hub.setup.demo.seed
 fi
 bench --site "$SITE" migrate
 bench use "$SITE"

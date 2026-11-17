@@ -1,5 +1,6 @@
 """M8: Script Reports, reconciliation, dashboards, impact email and ZATCA glue (PRD §7.11, §9.2, §10)."""
 
+import base64
 from unittest.mock import patch
 
 import frappe
@@ -250,10 +251,18 @@ class TestZatca(ReportsTestCase):
 			zatca.decode_tlv(text),
 			{1: "جمعية عطاء", 2: "399999999900003", 3: "2026-11-19T10:30:00", 4: "57.50", 5: "7.50"},
 		)
+		# Phase-2 QRs (from ksa_compliance) add binary tags: kept as base64, never a decode error
+		phase2 = base64.b64decode(text) + bytes([6, 3, 0x86, 0xFF, 0x00])
+		self.assertEqual(zatca.decode_tlv(base64.b64encode(phase2).decode())[6], "hv8A")
 
 	def test_membership_invoice_with_vat_included(self):
 		result = zatca.setup_sandbox_demo()
 		self.assertEqual(result["tax_id"], frappe.db.get_value("Company", result["company"], "tax_id"))
+		# ksa_compliance reads the ZATCA category from the template's Tax Category
+		self.assertEqual(
+			frappe.db.get_value("Sales Taxes and Charges Template", result["template"], "tax_category"),
+			zatca.DEMO_TAX_CATEGORY,
+		)
 
 		fake = FakeMoyasar()
 		with patch("ataa_hub.moyasar.get_client", return_value=fake):

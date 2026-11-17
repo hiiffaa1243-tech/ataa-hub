@@ -134,6 +134,13 @@ class TestDisbursement(SpendingTestCase):
 		doc.save()
 		self.assertEqual(act(doc, "Reject", ED).workflow_state, "Rejected")
 
+	def test_every_transition_is_recorded_with_user_and_time(self):
+		# Frappe writes a Version (user + time + old/new workflow_state) on every save of a
+		# tracked DocType. It skips versions inside tests, so the demo seed prints the real
+		# trail (setup.demo.summary, run in CI); here we check that tracking is switched on.
+		for doctype in ("Disbursement Request", "Fund Allocation", "Donation"):
+			self.assertTrue(frappe.get_meta(doctype).track_changes, doctype)
+
 	def test_accountant_can_return_to_draft(self):
 		doc = act(self.request(self.funded_project(), 100), "Submit for Review", PM)
 		self.assertEqual(act(doc, "Return", ACC).workflow_state, "Draft")

@@ -42,6 +42,7 @@ services:
       FRAPPE_BRANCH: ${FRAPPE_BRANCH:-version-16}
       PYTHON_VERSION: ${PYTHON_VERSION:-3.14}
       NODE_VERSION: ${NODE_VERSION:-24}
+      DEMO_DATA: ${DEMO_DATA:-1}   # 0 = empty association, no demo data
       # Moyasar TEST keys come from the environment (Codespaces secrets), never from the repo
       MOYASAR_PUBLISHABLE_KEY: ${MOYASAR_PUBLISHABLE_KEY:-}
       MOYASAR_SECRET_KEY: ${MOYASAR_SECRET_KEY:-}

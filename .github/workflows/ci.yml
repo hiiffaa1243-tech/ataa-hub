@@ -73,3 +73,17 @@ jobs:
           bench --site test_site run-tests --app ataa_hub
         env:
           TYPE: server
+
+      - name: Demo seed on a clean site (what docker compose up loads)
+        working-directory: /home/runner/frappe-bench
+        run: |
+          bench new-site --db-host 127.0.0.1 --db-root-password root --admin-password admin demo_site
+          bench --site demo_site install-app erpnext
+          bench --site demo_site install-app ataa_hub
+          bench --site demo_site execute ataa_hub.setup.wizard.complete_setup_wizard
+          bench --site demo_site set-config developer_mode 1
+          bench --site demo_site execute ataa_hub.setup.demo.seed
+          bench --site demo_site execute ataa_hub.setup.demo.seed
+          bench --site demo_site execute ataa_hub.setup.demo.summary
+        env:
+          CI: "Yes"
