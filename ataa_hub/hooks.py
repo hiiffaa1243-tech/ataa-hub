@@ -51,4 +51,26 @@ before_tests = "ataa_hub.setup.install.before_tests"
 doc_events = {
 	# A company created later (e.g. by the setup wizard) gets our accounts too.
 	"Company": {"on_update": "ataa_hub.setup.company.on_company_update"},
+	# Project is mandatory on donation/fund accounts; our journals cancel only via their source doc.
+	"Journal Entry": {
+		"validate": "ataa_hub.overrides.journal_entry.validate",
+		"before_cancel": "ataa_hub.overrides.journal_entry.before_cancel",
+	},
 }
+
+# ---------------------------------------------------------------------------
+# Row-level security: a Project Manager only sees the projects they are
+# assigned to (Project → Users), and those projects' donations.
+# ---------------------------------------------------------------------------
+permission_query_conditions = {
+	"Project": "ataa_hub.permissions.project_query_conditions",
+	"Donation": "ataa_hub.permissions.donation_query_conditions",
+}
+
+has_permission = {
+	"Project": "ataa_hub.permissions.project_has_permission",
+	"Donation": "ataa_hub.permissions.donation_has_permission",
+}
+
+# Public donation page is the site's home page
+home_page = "donate"

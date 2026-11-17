@@ -1,3 +1,5 @@
+import os
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -16,15 +18,20 @@ class MoyasarSettings(Document):
 
 
 def get_moyasar_config() -> frappe._dict:
-	"""Keys from the Moyasar Settings page, falling back to site_config.json.
+	"""Keys from the Moyasar Settings page, then site_config.json, then the environment
+	(Codespaces secrets MOYASAR_PUBLISHABLE_KEY / MOYASAR_SECRET_KEY / MOYASAR_WEBHOOK_SECRET).
 
 	The secret key is only ever read here on the server, never sent to a browser.
 	"""
 	settings = frappe.get_cached_doc("Moyasar Settings")
+
+	def pick(stored, name):
+		return stored or frappe.conf.get(name) or os.environ.get(name.upper()) or None
+
 	return frappe._dict(
-		publishable_key=settings.publishable_key or frappe.conf.get("moyasar_publishable_key"),
-		secret_key=settings.get_password("secret_key", raise_exception=False)
-		or frappe.conf.get("moyasar_secret_key"),
-		webhook_secret=settings.get_password("webhook_secret", raise_exception=False)
-		or frappe.conf.get("moyasar_webhook_secret"),
+		publishable_key=pick(settings.publishable_key, "moyasar_publishable_key"),
+		secret_key=pick(settings.get_password("secret_key", raise_exception=False), "moyasar_secret_key"),
+		webhook_secret=pick(
+			settings.get_password("webhook_secret", raise_exception=False), "moyasar_webhook_secret"
+		),
 	)
