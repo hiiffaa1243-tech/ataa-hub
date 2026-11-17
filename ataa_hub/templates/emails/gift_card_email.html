@@ -1,0 +1,9 @@
+<div dir="rtl" style="font-family: Tahoma, Arial, sans-serif; text-align: right; line-height: 1.8;">
+	<p>السلام عليكم {{ recipient_name }}،</p>
+	<p>أهداك <strong>{{ donor_name }}</strong> تبرعاً لمشروع <strong>{{ project_title }}</strong> بمناسبة {{ occasion }}.</p>
+	{% if gift_message %}
+	<blockquote style="border-right: 3px solid #AD8F52; margin: 0; padding: 4px 12px; color: #555;">{{ gift_message }}</blockquote>
+	{% endif %}
+	<p><a href="{{ gift_url }}" style="color: #AD8F52;">افتح بطاقة الإهداء</a></p>
+	<p style="color: #888; font-size: 12px;">جمعية عطاء (بيانات تجريبية)</p>
+</div>

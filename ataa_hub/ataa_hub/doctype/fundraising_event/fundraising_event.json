@@ -1,0 +1,155 @@
+{
+ "actions": [],
+ "creation": "2026-11-18 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "event_code",
+  "event_name",
+  "location",
+  "column_break_main",
+  "status",
+  "start_datetime",
+  "end_datetime",
+  "target_amount",
+  "live_screen_enabled",
+  "projects_section",
+  "projects",
+  "terminals_section",
+  "terminals"
+ ],
+ "fields": [
+  {
+   "fieldname": "event_code",
+   "fieldtype": "Data",
+   "label": "Event Code",
+   "reqd": 1,
+   "unique": 1,
+   "set_only_once": 1,
+   "description": "e.g. CLOCKTOWER-2026. Terminals send this code."
+  },
+  {
+   "fieldname": "event_name",
+   "fieldtype": "Data",
+   "label": "Event Name",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "label": "Location"
+  },
+  {
+   "fieldname": "column_break_main",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Planned\nActive\nClosed",
+   "default": "Planned",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "start_datetime",
+   "fieldtype": "Datetime",
+   "label": "Starts At",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "end_datetime",
+   "fieldtype": "Datetime",
+   "label": "Ends At",
+   "reqd": 1
+  },
+  {
+   "fieldname": "target_amount",
+   "fieldtype": "Currency",
+   "label": "Target (SAR)",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "live_screen_enabled",
+   "fieldtype": "Check",
+   "label": "Live Screen Enabled",
+   "default": "1"
+  },
+  {
+   "fieldname": "projects_section",
+   "fieldtype": "Section Break",
+   "label": "Projects"
+  },
+  {
+   "fieldname": "projects",
+   "fieldtype": "Table",
+   "label": "Projects",
+   "options": "Fundraising Event Project",
+   "reqd": 1
+  },
+  {
+   "fieldname": "terminals_section",
+   "fieldtype": "Section Break",
+   "label": "POS Terminals"
+  },
+  {
+   "fieldname": "terminals",
+   "fieldtype": "Table",
+   "label": "Terminals",
+   "options": "Fundraising Event Terminal"
+  }
+ ],
+ "links": [],
+ "modified": "2026-11-18 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ataa Hub",
+ "name": "Fundraising Event",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "share": 1
+  },
+  {
+   "role": "Donations Accountant",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  },
+  {
+   "role": "Executive Director",
+   "read": 1,
+   "report": 1,
+   "print": 1
+  },
+  {
+   "role": "Project Manager",
+   "read": 1,
+   "report": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "field:event_code",
+ "naming_rule": "By fieldname",
+ "title_field": "event_name",
+ "show_title_field_in_link": 1,
+ "search_fields": "event_name,location",
+ "track_changes": 1
+}
