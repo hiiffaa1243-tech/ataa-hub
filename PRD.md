@@ -3,7 +3,7 @@
 
 | Item | Value |
 |---|---|
-| Version | **2.0 (draft for approval)** — supersedes v1 ([archive](docs/archive/v1/PRD-v1.md)) |
+| Version | **2.1 (approved; M0 decisions recorded)** — supersedes v1 ([archive](docs/archive/v1/PRD-v1.md)) |
 | Owner | هيفاء عبدالرزاق |
 | Type | Portfolio project, fake data only |
 | Stack | ERPNext + Frappe Framework, Python, JavaScript, MariaDB, Redis |
@@ -71,8 +71,8 @@ A custom app on **ERPNext** that:
 | D2 | **Project balance = net P&L of that project in the GL.** | Income accounts (donations, fund transfers in) add, expense accounts (disbursements, fund transfers out) subtract. One SQL over GL Entry (`is_cancelled = 0`, `project = P`, P&L accounts) gives the balance, so it can never drift. |
 | D3 | **Fund Allocation is a small custom submittable DocType with its own Workflow**, which posts a Journal Entry on approval. | A Workflow on Journal Entry would apply to *every* journal in the company (payroll, depreciation, manual corrections) and break normal accounting. A dedicated document keeps the approval scoped, carries its own validation (enough unrestricted balance) and links to the JE it created. |
 | D4 | **Fund transfers use two income-type accounts**, "Fund Transfers Out" (debit, project GENERAL) and "Fund Transfers In" (credit, target project). | They net to zero at company level, but per project they move the balance, so D2 still holds. |
-| D5 | **ZATCA: integrate an existing open-source app**; first candidate `ksa_compliance` (LavaLoon), fallback `zatca_erpgulf` (ERPGulf). Final choice after a one-day spike (Build Plan, M0). | Both are open source and used in production. `ksa_compliance` lists simplified (B2C) invoices and ZATCA sandbox support, which matches our need. It is AGPL-3.0: acceptable because it is installed as a separate app, not copied into ours. `zatca_erpgulf` is MIT but its README lists standard invoices / credit / debit notes and ERPNext 13–15. Building ZATCA signing from scratch is out of scope. |
-| D6 | **ERPNext version: v16 if the chosen ZATCA app installs cleanly on it, else v15.** Decided in the M0 spike. | v16 is the current stable line (released January 2026). ZATCA app compatibility is the deciding constraint. Everything in this PRD exists in both versions. |
+| D5 | **ZATCA: integrate `ksa_compliance` (LavaLoon)** as a separate app. **Decided in M0:** both `ksa_compliance` (master) and `zatca_erpgulf` (main) install and migrate cleanly on ERPNext 16.60.0; `ksa_compliance` chosen because it lists simplified (B2C) invoices and sandbox support. `zatca_erpgulf` stays the fallback. Sandbox acceptance of a simplified invoice is verified in M8. | Both are open source and used in production. `ksa_compliance` lists simplified (B2C) invoices and ZATCA sandbox support, which matches our need. It is AGPL-3.0: acceptable because it is installed as a separate app, not copied into ours. `zatca_erpgulf` is MIT but its README lists standard invoices / credit / debit notes and ERPNext 13–15. Building ZATCA signing from scratch is out of scope. |
+| D6 | **ERPNext v16** (`version-16` branch; spike ran Frappe/ERPNext 16.60.0 on Python 3.14, Node 24, MariaDB 11.8). **Decided in M0.** | v16 is the current stable line (released January 2026). ZATCA app compatibility is the deciding constraint. Everything in this PRD exists in both versions. |
 | D7 | **Pending website donations are Draft Donations.** Submit = money received. Cancel = reversal / refund. | Uses Frappe's native docstatus life cycle instead of a custom status machine. The GL posting happens exactly once, on submit. |
 | D8 | **A membership charge attempt is logged in a custom DocType** "Membership Charge Attempt". | Dunning needs a record per attempt (when, result, next retry, Moyasar id), and it protects against double charging. ERPNext has no equivalent. |
 
@@ -277,7 +277,7 @@ As v1, contract in [API.md](API.md). `create_donation` now **creates and submits
   - `TERMINAL_NOT_IN_EVENT` (403) if the (API client, terminal_id) pair is not listed on the event.
   - `PROJECT_NOT_ALLOWED` (403) if the project is not one of the event's projects.
 - **Live screen** `/event/<event_code>` for a large display at the booth: total vs target (progress bar), live feed of latest donations (amount + project, **no donor names**), totals per project, per terminal, last hour.
-- Updates arrive through `frappe.publish_realtime` on Donation submit, no page refresh. The page is public, so the M0 spike verifies that guest sockets receive events on the chosen version; if they don't, the page falls back to polling a cached endpoint every 10 s.
+- Updates arrive without a page refresh. **M0 finding:** on v16 the socket.io server rejects guest connections ("Missing cookie and authorization header"), so the **public** screen polls a cached, read-only endpoint (`ataa_hub.public.event_feed`, cache cleared on Donation submit) every 5 s. Logged-in staff views (desk dashboards, an "Event Live" desk page) use `frappe.publish_realtime`.
 - Report **Event Performance**: per hour, per terminal, per card scheme.
 
 ### 7.4 Bank transfer (manual)
@@ -293,11 +293,11 @@ Bronze 50, Silver 100, Gold 250, Platinum 500 SAR / month (amounts in Membership
 1. Donor picks a tier on `/membership` (logged in or with email + mobile).
 2. Server creates/matches the Customer, then a Draft "sign-up intent" is held in the session; the Moyasar form charges the first month with **save card** enabled.
 3. Server verifies the payment with the secret key and reads the returned **token**, checks its status with `GET /v1/tokens/:id` (must be `active`), stores it in **Donor Payment Method**.
-4. Server creates the **Subscription** (party = Customer, plan = tier, monthly, invoice generated at the beginning of the period, submit invoice on), generates the first **Sales Invoice** through the native Subscription process, and records a **Payment Entry** against it for the verified first payment.
+4. Server creates the **Subscription** (party = Customer, plan = tier, monthly, invoice generated at the beginning of the period, submit invoice on, `generate_new_invoices_past_due_date = 0`). **M0 finding:** on insert, v16 immediately creates and submits the first Sales Invoice (posting = due = start date) and moves `current_invoice_start/end` to the *next* period. We then record a **Payment Entry** against that invoice for the verified first payment.
 5. Customer `membership_tier = tier`, `membership_status = Active`, `member_since = today`, Contact and portal User created (login by email link).
 
 #### 7.5.3 Monthly charging (daily scheduler job)
-1. ERPNext Subscription generates the monthly Sales Invoice (native scheduler).
+1. ERPNext Subscription generates the monthly Sales Invoice (native scheduler job `process_subscription.create_subscription_process`). **M0 finding:** with `generate_new_invoices_past_due_date = 0`, no new invoice is created while the previous one is unpaid, so a suspended member never piles up invoices. When the open invoice is finally paid (card update), the next period's invoice follows normally. The card on the membership shows the next charge as `current_invoice_start`.
 2. Our daily job selects submitted, unpaid Sales Invoices with `is_membership = 1` and `due_date ≤ today` that have no Processing/Succeeded attempt and whose next retry date has arrived.
 3. For each: create a **Membership Charge Attempt** in status Processing **and commit** before calling Moyasar (crash-safe), then `POST /v1/payments` with `source: {type: "token", token}`, amount, and `metadata: {invoice, attempt}`.
 4. Verify the result **by fetching the payment** with the secret key. On `paid`: create and submit the Payment Entry, mark the attempt Succeeded, send an Arabic receipt email.
@@ -520,11 +520,11 @@ Live payments or live ZATCA; real POS hardware (Postman simulates terminals); au
 | # | Item | Default until answered |
 |---|---|---|
 | Q1 | VAT treatment of donations and memberships (tax advisor) | Donations: Out of scope; memberships: template configurable, demo uses 15 % |
-| Q2 | ZATCA app: `ksa_compliance` vs `zatca_erpgulf`, on v15 or v16 | Decided in M0 spike |
+| Q2 | ZATCA app and ERPNext version | **Closed (M0):** v16 + `ksa_compliance` (D5, D6) |
 | Q3 | Honorary donor who already pays a tier | Keep paid membership + Honorary badge |
 | Q4 | Does `lifetime_giving` include membership payments? | Yes, donations + paid membership invoices |
-| Q5 | Moyasar test-mode behaviour for token charges (3DS, `cvc` requirements of test cards) | Verified in M0 with test cards; `3ds: false` for merchant-initiated charges |
+| Q5 | Moyasar test-mode behaviour for token charges (3DS, `cvc` requirements of test cards) | **Still open:** M0 check 6 skipped (no Moyasar test keys yet). Code keeps Moyasar behind an adapter; verified before M5 with test keys |
 | Q6 | Section 7 of the change request was truncated | System Manager owns all settings |
 | R1 | Scope is large for one release | Build Plan orders work so each milestone is demoable |
-| R2 | Guest realtime on public pages | Polling fallback |
-| R3 | Native Subscription invoice generation timing differs between versions | Verified in M0; our job reads invoices, it doesn't create them |
+| R2 | Guest realtime on public pages | **Confirmed in M0:** guests can't connect → public screen polls (7.3) |
+| R3 | Native Subscription invoice generation timing | **Closed (M0):** first invoice on insert; next one only after the previous is paid (7.5.2, 7.5.3) |
