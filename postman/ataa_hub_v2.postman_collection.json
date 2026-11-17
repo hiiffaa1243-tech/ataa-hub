@@ -1,0 +1,1169 @@
+{
+  "info": {
+    "_postman_id": "2f0d6f0a-6c7e-4b4e-9d52-5a7a0c0de200",
+    "name": "Ataa Hub — Donations API v2",
+    "description": "End-to-end proof of API.md v2. Run against a local site after `bench execute ataa_hub.setup.demo_api.seed` (fake demo keys). Every request has tests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "paid_at",
+      "value": ""
+    },
+    {
+      "key": "ref",
+      "value": ""
+    },
+    {
+      "key": "rrn",
+      "value": ""
+    },
+    {
+      "key": "store_ref",
+      "value": ""
+    },
+    {
+      "key": "store_donation_id",
+      "value": ""
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// paid_at = one minute ago, ISO 8601 with Riyadh offset",
+          "const d = new Date(Date.now() + 3 * 3600 * 1000 - 60 * 1000);",
+          "pm.collectionVariables.set('paid_at', d.toISOString().slice(0, 19) + '+03:00');"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Discovery",
+      "item": [
+        {
+          "name": "List projects",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{store_api_key}}:{{store_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/method/ataa_hub.api.v1.list_projects"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"SUQYA-01 has v2 fields\", () => {",
+                  "  const p = body.message.data.find(x => x.project_code === \"SUQYA-01\");",
+                  "  pm.expect(p).to.include.keys(\"fund_type\", \"impact_unit_label\", \"impact_units_per_sar\", \"collected_amount\");",
+                  "});",
+                  "pm.test(\"closed project not listed\", () => pm.expect(body.message.data.map(x => x.project_code)).to.not.include(\"WINTER-06\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List projects for event",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{store_api_key}}:{{store_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/method/ataa_hub.api.v1.list_projects?event_code=CLOCKTOWER-2026"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"only event projects\", () => pm.expect(body.message.data.map(x => x.project_code).sort()).to.eql([\"SUQYA-01\", \"WAFADA-02\"]));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Online store",
+      "item": [
+        {
+          "name": "Create donation (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{store_api_key}}:{{store_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"{{ref}}\",\n  \"project_code\": \"SUQYA-01\",\n  \"amount\": 250,\n  \"paid_at\": \"{{paid_at}}\",\n  \"payment_reference\": \"pay-{{$randomUUID}}\",\n  \"donor\": {\n    \"name\": \"Test Donor\",\n    \"mobile\": \"+966500000001\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('ref', 'PM-' + Date.now() + '-' + Math.floor(Math.random() * 1e6));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"posted, not duplicate\", () => { pm.expect(body.message.data.status).to.eql(\"Paid\"); pm.expect(body.message.data.duplicate).to.eql(false); });",
+                  "pm.test(\"impact and receipt link\", () => { pm.expect(body.message.data.impact_units).to.eql(250); pm.expect(body.message.data.receipt_verification_url).to.include(\"/verify/\"); });",
+                  "pm.collectionVariables.set('store_ref', body.message.data.external_reference);",
+                  "pm.collectionVariables.set('store_donation_id', body.message.data.donation_id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Retry same donation (200, duplicate)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{store_api_key}}:{{store_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"{{store_ref}}\",\n  \"project_code\": \"SUQYA-01\",\n  \"amount\": 250,\n  \"paid_at\": \"{{paid_at}}\",\n  \"payment_reference\": \"pay-{{$randomUUID}}\",\n  \"donor\": {\n    \"name\": \"Test Donor\",\n    \"mobile\": \"+966500000001\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"same donation\", () => { pm.expect(body.message.data.duplicate).to.eql(true); pm.expect(body.message.data.donation_id).to.eql(pm.collectionVariables.get(\"store_donation_id\")); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Same reference, different amount (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{store_api_key}}:{{store_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"{{store_ref}}\",\n  \"project_code\": \"SUQYA-01\",\n  \"amount\": 999,\n  \"paid_at\": \"{{paid_at}}\",\n  \"payment_reference\": \"pay-{{$randomUUID}}\",\n  \"donor\": {\n    \"name\": \"Test Donor\",\n    \"mobile\": \"+966500000001\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"error DUPLICATE_CONFLICT\", () => pm.expect(body.message.error.code).to.eql(\"DUPLICATE_CONFLICT\"));",
+                  "pm.test(\"names the field\", () => pm.expect(body.message.error.details.conflicting_fields).to.eql([\"amount\"]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get donation",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{store_api_key}}:{{store_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/method/ataa_hub.api.v1.get_donation?external_reference={{store_ref}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"found\", () => pm.expect(body.message.data.donation_id).to.eql(pm.collectionVariables.get(\"store_donation_id\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Gift donation (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{store_api_key}}:{{store_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"{{ref}}\",\n  \"project_code\": \"SUQYA-01\",\n  \"amount\": 100,\n  \"paid_at\": \"{{paid_at}}\",\n  \"payment_reference\": \"pay-{{$randomUUID}}\",\n  \"donor\": {\n    \"name\": \"Test Donor\",\n    \"mobile\": \"+966500000001\"\n  },\n  \"gift\": {\n    \"recipient_name\": \"Test Recipient\",\n    \"recipient_email\": \"recipient@example.test\",\n    \"occasion\": \"Eid\",\n    \"message\": \"عيدكم مبارك\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('ref', 'PM-' + Date.now() + '-' + Math.floor(Math.random() * 1e6));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"gift link returned\", () => pm.expect(body.message.data.gift.url).to.include(\"/gift/\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Anonymous donation (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{store_api_key}}:{{store_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"{{ref}}\",\n  \"project_code\": \"IFTAR-03\",\n  \"amount\": 50,\n  \"paid_at\": \"{{paid_at}}\",\n  \"payment_reference\": \"pay-{{$randomUUID}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('ref', 'PM-' + Date.now() + '-' + Math.floor(Math.random() * 1e6));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"recorded\", () => pm.expect(body.message.ok).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. POS — Clock Tower booth",
+      "item": [
+        {
+          "name": "T01 donation at event (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{pos_api_key}}:{{pos_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"{{ref}}\",\n  \"project_code\": \"WAFADA-02\",\n  \"amount\": 150,\n  \"paid_at\": \"{{paid_at}}\",\n  \"payment_reference\": \"pay-{{$randomUUID}}\",\n  \"event_code\": \"CLOCKTOWER-2026\",\n  \"pos\": {\n    \"terminal_id\": \"T01-CLOCKTOWER\",\n    \"card_scheme\": \"mada\",\n    \"rrn\": \"{{rrn}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('ref', 'PM-' + Date.now() + '-' + Math.floor(Math.random() * 1e6));",
+                  "pm.collectionVariables.set('rrn', String(Math.floor(1e11 + Math.random() * 9e11)));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"tagged with event\", () => pm.expect(body.message.data.event_code).to.eql(\"CLOCKTOWER-2026\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "T02 donation at event (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{pos_api_key}}:{{pos_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"{{ref}}\",\n  \"project_code\": \"SUQYA-01\",\n  \"amount\": 100,\n  \"paid_at\": \"{{paid_at}}\",\n  \"payment_reference\": \"pay-{{$randomUUID}}\",\n  \"event_code\": \"CLOCKTOWER-2026\",\n  \"pos\": {\n    \"terminal_id\": \"T02-CLOCKTOWER\",\n    \"card_scheme\": \"visa\",\n    \"rrn\": \"{{rrn}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('ref', 'PM-' + Date.now() + '-' + Math.floor(Math.random() * 1e6));",
+                  "pm.collectionVariables.set('rrn', String(Math.floor(1e11 + Math.random() * 9e11)));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unregistered terminal (403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{pos_api_key}}:{{pos_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"{{ref}}\",\n  \"project_code\": \"SUQYA-01\",\n  \"amount\": 250,\n  \"paid_at\": \"{{paid_at}}\",\n  \"payment_reference\": \"pay-{{$randomUUID}}\",\n  \"event_code\": \"CLOCKTOWER-2026\",\n  \"pos\": {\n    \"terminal_id\": \"T09-CLOCKTOWER\",\n    \"card_scheme\": \"mada\",\n    \"rrn\": \"{{rrn}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('ref', 'PM-' + Date.now() + '-' + Math.floor(Math.random() * 1e6));",
+                  "pm.collectionVariables.set('rrn', String(Math.floor(1e11 + Math.random() * 9e11)));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"error TERMINAL_NOT_IN_EVENT\", () => pm.expect(body.message.error.code).to.eql(\"TERMINAL_NOT_IN_EVENT\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Outside event window (403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{pos_api_key}}:{{pos_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"{{ref}}\",\n  \"project_code\": \"SUQYA-01\",\n  \"amount\": 250,\n  \"paid_at\": \"2020-01-01T10:00:00+03:00\",\n  \"payment_reference\": \"pay-{{$randomUUID}}\",\n  \"event_code\": \"CLOCKTOWER-2026\",\n  \"pos\": {\n    \"terminal_id\": \"T01-CLOCKTOWER\",\n    \"card_scheme\": \"mada\",\n    \"rrn\": \"{{rrn}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('ref', 'PM-' + Date.now() + '-' + Math.floor(Math.random() * 1e6));",
+                  "pm.collectionVariables.set('rrn', String(Math.floor(1e11 + Math.random() * 9e11)));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"error EVENT_NOT_ACTIVE\", () => pm.expect(body.message.error.code).to.eql(\"EVENT_NOT_ACTIVE\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unknown event (403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{pos_api_key}}:{{pos_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"{{ref}}\",\n  \"project_code\": \"SUQYA-01\",\n  \"amount\": 250,\n  \"paid_at\": \"{{paid_at}}\",\n  \"payment_reference\": \"pay-{{$randomUUID}}\",\n  \"event_code\": \"NO-SUCH-EVENT\",\n  \"pos\": {\n    \"terminal_id\": \"T01-CLOCKTOWER\",\n    \"card_scheme\": \"mada\",\n    \"rrn\": \"{{rrn}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('ref', 'PM-' + Date.now() + '-' + Math.floor(Math.random() * 1e6));",
+                  "pm.collectionVariables.set('rrn', String(Math.floor(1e11 + Math.random() * 9e11)));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"error EVENT_NOT_ACTIVE\", () => pm.expect(body.message.error.code).to.eql(\"EVENT_NOT_ACTIVE\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Project not in event (403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{store_api_key}}:{{store_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"{{ref}}\",\n  \"project_code\": \"IFTAR-03\",\n  \"amount\": 250,\n  \"paid_at\": \"{{paid_at}}\",\n  \"payment_reference\": \"pay-{{$randomUUID}}\",\n  \"event_code\": \"CLOCKTOWER-2026\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('ref', 'PM-' + Date.now() + '-' + Math.floor(Math.random() * 1e6));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"error PROJECT_NOT_ALLOWED\", () => pm.expect(body.message.error.code).to.eql(\"PROJECT_NOT_ALLOWED\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Auth",
+      "item": [
+        {
+          "name": "Missing key (401)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/method/ataa_hub.api.v1.list_projects"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"error AUTH_REQUIRED\", () => pm.expect(body.message.error.code).to.eql(\"AUTH_REQUIRED\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Wrong key (401)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{wrong_api_key}}:{{wrong_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/method/ataa_hub.api.v1.list_projects"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deactivated client (403)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{inactive_api_key}}:{{inactive_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/method/ataa_hub.api.v1.list_projects"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"error CLIENT_INACTIVE\", () => pm.expect(body.message.error.code).to.eql(\"CLIENT_INACTIVE\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Staff user (403)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{staff_api_key}}:{{staff_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/method/ataa_hub.api.v1.list_projects"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"error NOT_AN_API_CLIENT\", () => pm.expect(body.message.error.code).to.eql(\"NOT_AN_API_CLIENT\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. Validation",
+      "item": [
+        {
+          "name": "All invalid fields at once (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{store_api_key}}:{{store_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"{{ref}}\",\n  \"project_code\": \"SUQYA-01\",\n  \"amount\": 0,\n  \"currency\": \"USD\",\n  \"paid_at\": \"2026-01-01T10:00:00\",\n  \"payment_reference\": \"\",\n  \"donor\": {\n    \"mobile\": \"0500000000\",\n    \"email\": \"not-an-email\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('ref', 'PM-' + Date.now() + '-' + Math.floor(Math.random() * 1e6));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"error VALIDATION_ERROR\", () => pm.expect(body.message.error.code).to.eql(\"VALIDATION_ERROR\"));",
+                  "pm.test(\"every field listed\", () => pm.expect(body.message.error.details).to.have.all.keys(\"amount\", \"currency\", \"paid_at\", \"payment_reference\", \"donor.mobile\", \"donor.email\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POS without pos fields (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{pos_api_key}}:{{pos_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"{{ref}}\",\n  \"project_code\": \"SUQYA-01\",\n  \"amount\": 250,\n  \"paid_at\": \"{{paid_at}}\",\n  \"payment_reference\": \"pay-{{$randomUUID}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('ref', 'PM-' + Date.now() + '-' + Math.floor(Math.random() * 1e6));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"pos required\", () => pm.expect(body.message.error.details).to.have.property(\"pos\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Gift without recipient contact (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{store_api_key}}:{{store_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"{{ref}}\",\n  \"project_code\": \"SUQYA-01\",\n  \"amount\": 250,\n  \"paid_at\": \"{{paid_at}}\",\n  \"payment_reference\": \"pay-{{$randomUUID}}\",\n  \"gift\": {\n    \"recipient_name\": \"Test Recipient\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('ref', 'PM-' + Date.now() + '-' + Math.floor(Math.random() * 1e6));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"recipient rule\", () => pm.expect(body.message.error.details).to.have.property(\"gift.recipient_email\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Amount with 3 decimals (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{store_api_key}}:{{store_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"{{ref}}\",\n  \"project_code\": \"SUQYA-01\",\n  \"amount\": 10.123,\n  \"paid_at\": \"{{paid_at}}\",\n  \"payment_reference\": \"pay-{{$randomUUID}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('ref', 'PM-' + Date.now() + '-' + Math.floor(Math.random() * 1e6));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"amount\", () => pm.expect(body.message.error.details.amount).to.include(\"2 decimal\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "6. Project rules",
+      "item": [
+        {
+          "name": "Unknown project (404)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{store_api_key}}:{{store_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"{{ref}}\",\n  \"project_code\": \"NOPE-99\",\n  \"amount\": 250,\n  \"paid_at\": \"{{paid_at}}\",\n  \"payment_reference\": \"pay-{{$randomUUID}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('ref', 'PM-' + Date.now() + '-' + Math.floor(Math.random() * 1e6));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"error PROJECT_NOT_FOUND\", () => pm.expect(body.message.error.code).to.eql(\"PROJECT_NOT_FOUND\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Closed project (403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{store_api_key}}:{{store_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"{{ref}}\",\n  \"project_code\": \"WINTER-06\",\n  \"amount\": 250,\n  \"paid_at\": \"{{paid_at}}\",\n  \"payment_reference\": \"pay-{{$randomUUID}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('ref', 'PM-' + Date.now() + '-' + Math.floor(Math.random() * 1e6));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"error PROJECT_INACTIVE\", () => pm.expect(body.message.error.code).to.eql(\"PROJECT_INACTIVE\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Project not allowed for client (403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{pos_api_key}}:{{pos_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/method/ataa_hub.api.v1.create_donation",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"{{ref}}\",\n  \"project_code\": \"IFTAR-03\",\n  \"amount\": 250,\n  \"paid_at\": \"{{paid_at}}\",\n  \"payment_reference\": \"pay-{{$randomUUID}}\",\n  \"pos\": {\n    \"terminal_id\": \"T01-CLOCKTOWER\",\n    \"card_scheme\": \"mada\",\n    \"rrn\": \"{{rrn}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('ref', 'PM-' + Date.now() + '-' + Math.floor(Math.random() * 1e6));",
+                  "pm.collectionVariables.set('rrn', String(Math.floor(1e11 + Math.random() * 9e11)));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"error PROJECT_NOT_ALLOWED\", () => pm.expect(body.message.error.code).to.eql(\"PROJECT_NOT_ALLOWED\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unknown donation (404)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "token {{store_api_key}}:{{store_api_secret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/method/ataa_hub.api.v1.get_donation?external_reference=NOT-SENT-123"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"error DONATION_NOT_FOUND\", () => pm.expect(body.message.error.code).to.eql(\"DONATION_NOT_FOUND\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
