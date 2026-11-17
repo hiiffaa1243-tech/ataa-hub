@@ -10,6 +10,7 @@ import re
 
 import frappe
 from frappe import _
+from frappe.query_builder.functions import Sum
 from frappe.utils import flt
 
 from ataa_hub.constants import CUSTOMER_GROUP_DONORS
@@ -102,5 +103,11 @@ def update_lifetime_giving(customer: str | None) -> None:
 	"""Recompute from submitted donations (memberships are added in M5)."""
 	if not customer:
 		return
-	total = frappe.db.get_value("Donation", {"donor": customer, "docstatus": 1}, {"SUM": "amount"})
+	donation = frappe.qb.DocType("Donation")
+	total = (
+		frappe.qb.from_(donation)
+		.select(Sum(donation.amount))
+		.where((donation.donor == customer) & (donation.docstatus == 1))
+		.run()[0][0]
+	)
 	frappe.db.set_value("Customer", customer, "lifetime_giving", flt(total), update_modified=False)
