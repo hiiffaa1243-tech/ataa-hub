@@ -43,10 +43,10 @@ DONORS = [
 
 MEMBERS = [
 	# donor index, tier, paid
-	(0, "Gold", True),
-	(1, "Silver", True),
-	(3, "Bronze", True),
-	(5, "Gold", False),  # shows up as "Payment Pending"
+	(0, "Aoun", True),
+	(1, "Adeed", True),
+	(3, "Muazir", True),
+	(5, "Kareem", False),  # shows up as "Payment Pending"
 ]
 
 
@@ -65,6 +65,7 @@ def seed():
 		for code in codes:
 			_assign(projects[code], email)
 
+	_bank_accounts()
 	donors = [get_or_create_donor(name, mobile, email) for name, mobile, email in DONORS]
 	_portal_user(donors[0], DONORS[0][2])
 
@@ -74,6 +75,10 @@ def seed():
 		_donations(projects, donors)
 		_spending(projects)
 		_memberships(donors)
+	if not frappe.db.count("Custody"):
+		_custody(projects)
+	for c in frappe.get_all("Custody", filters={"holder_name": ("is", "not set")}, fields=["name", "holder"]):
+		frappe.db.set_value("Custody", c.name, "holder_name", frappe.utils.get_fullname(c.holder))
 
 	frappe.db.commit()
 	print(
@@ -84,10 +89,74 @@ def seed():
 	)
 
 
+# ------------------------------------------------------------ bank accounts
+
+# Fake IBANs (valid checksum so ERPNext accepts them; the accounts do not exist): shown on the checkout page
+# for the "bank transfer" option.
+BANK_ACCOUNTS = [
+	("مصرف الراجحي", "حساب التبرعات العامة", "SA7380000000608010000001"),
+	("البنك الأهلي السعودي", "حساب المشاريع", "SA7910000000000000000002"),
+	("بنك البلاد", "حساب الأوقاف", "SA6515000000000000000003"),
+]
+
+
+def _bank_accounts():
+	company = frappe.db.get_single_value("Ataa Settings", "company")
+	gl = frappe.db.get_single_value("Ataa Settings", "main_bank_account")
+	for i, (bank, account_name, iban) in enumerate(BANK_ACCOUNTS):
+		if not frappe.db.exists("Bank", bank):
+			frappe.get_doc({"doctype": "Bank", "bank_name": bank}).insert(ignore_permissions=True)
+		if frappe.db.exists("Bank Account", {"iban": iban}):
+			continue
+		frappe.get_doc(
+			{
+				"doctype": "Bank Account",
+				"account_name": account_name,
+				"bank": bank,
+				"company": company,
+				"account": gl if i == 0 else _bank_gl(company, gl, bank),
+				"is_company_account": 1,
+				"is_default": int(i == 0),
+				"iban": iban,
+				"bank_account_no": iban[-10:],
+			}
+		).insert(ignore_permissions=True)
+
+
+def _bank_gl(company, main_gl, bank):
+	"""ERPNext allows one Bank Account per ledger account: one Bank-type account per bank."""
+	existing = frappe.db.get_value("Account", {"company": company, "account_name": bank, "is_group": 0})
+	if existing:
+		return existing
+	return (
+		frappe.get_doc(
+			{
+				"doctype": "Account",
+				"account_name": bank,
+				"parent_account": frappe.db.get_value("Account", main_gl, "parent_account"),
+				"company": company,
+				"account_type": "Bank",
+				"is_group": 0,
+			}
+		)
+		.insert(ignore_permissions=True)
+		.name
+	)
+
+
 # ---------------------------------------------------------------- people
 
 
 def _staff(email, first_name, profile):
+	_staff_user(email, first_name, profile)
+	# Land on the staff dashboard (the app's route, /desk/ataa-home), not ERPNext's home.
+	# A default workspace would win over the app, so it is cleared.
+	frappe.db.set_value(
+		"User", email, {"default_workspace": None, "default_app": "ataa_hub"}, update_modified=False
+	)
+
+
+def _staff_user(email, first_name, profile):
 	if not frappe.db.exists("User", email):
 		frappe.get_doc(
 			{
@@ -319,6 +388,114 @@ def _spending(projects):
 	finally:
 		frappe.set_user("Administrator")
 	_act(allocation, "Request", pm)
+
+
+# ---------------------------------------------------------------- custody (عهد)
+
+
+def _invoice_image(number: int, supplier: str, amount: float) -> str:
+	"""A fake receipt picture, so the closing report has invoices to show."""
+	import io
+
+	from PIL import Image, ImageDraw
+
+	img = Image.new("RGB", (420, 300), "white")
+	d = ImageDraw.Draw(img)
+	d.rectangle([8, 8, 411, 291], outline="#AD8F52", width=4)
+	for y, text in enumerate(
+		(
+			f"DEMO INVOICE #{number}",
+			f"Supplier ref. S-{number % 7 + 1:03d}",
+			"VAT No. 300000000000003",
+			f"TOTAL: {amount:,.2f} SAR",
+			"FAKE DATA",
+		)
+	):
+		d.text((30, 40 + y * 45), text, fill="#1f1d1a")
+	buf = io.BytesIO()
+	img.save(buf, format="PNG")
+	f = frappe.get_doc(
+		{
+			"doctype": "File",
+			"file_name": f"demo-invoice-{number}.png",
+			"content": buf.getvalue(),
+			"is_private": 1,
+		}
+	).insert(ignore_permissions=True)
+	return f.file_url
+
+
+def _custody(projects):
+	from ataa_hub import custody
+
+	pm, acc = "pm@ataa.test", "accountant@ataa.test"
+
+	def new(project, amount, purpose, user=pm):
+		frappe.set_user(user)
+		try:
+			return (
+				frappe.get_doc(
+					{"doctype": "Custody", "project": project, "amount": amount, "purpose": purpose}
+				)
+				.insert()
+				.name
+			)
+		finally:
+			frappe.set_user("Administrator")
+
+	def as_acc(fn, name, *args):
+		frappe.set_user(acc)
+		try:
+			fn(name, *args)
+		finally:
+			frappe.set_user("Administrator")
+
+	def buy(name, rows, user=pm):
+		frappe.set_user(user)
+		try:
+			doc = frappe.get_doc("Custody", name)
+			for i, (desc, supplier, amount) in enumerate(rows):
+				n = 1000 + frappe.db.count("File", {"file_name": ("like", "demo-invoice-%")}) + i
+				doc.append(
+					"expenses",
+					{
+						"description": desc,
+						"supplier_name": supplier,
+						"amount": amount,
+						"invoice": _invoice_image(n, supplier, amount),
+					},
+				)
+			doc.save()
+		finally:
+			frappe.set_user("Administrator")
+
+	suqya, wafada = projects["SUQYA-01"], projects["WAFADA-02"]
+
+	# Closed with a report
+	closed = new(suqya, 1500, "مشتريات توزيع الماء في الساحات")
+	as_acc(custody.approve_and_pay, closed)
+	buy(
+		closed,
+		[
+			("ثلاجات ماء متنقلة", "مؤسسة البرودة", 640),
+			("أكواب ورقية", "تموينات الحرم", 210.5),
+			("نقل وتحميل", "نقليات مكة", 300),
+		],
+	)
+	as_acc(custody.close, closed)
+
+	# Open, partly spent
+	open_ = new(wafada, 2000, "ضيافة الوفود هذا الأسبوع")
+	as_acc(custody.approve_and_pay, open_)
+	buy(open_, [("تمر سكري 20 كرتون", "تمور القصيم", 780), ("قهوة وهيل", "محمصة الديرة", 245)])
+
+	# Spent in full: waiting for the accountant to close it
+	full = new(suqya, 600, "مظلات وتبريد لنقطة السقيا")
+	as_acc(custody.approve_and_pay, full)
+	buy(full, [("مراوح رذاذ", "عالم التبريد", 450), ("أسلاك وتوصيلات", "عدد الحرم", 150)])
+
+	# New request
+	new(wafada, 900, "مستلزمات استقبال الزوار يوم الجمعة")
 
 
 # ---------------------------------------------------------------- memberships

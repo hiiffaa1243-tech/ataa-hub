@@ -1,0 +1,59 @@
+{#- Shared pieces of the public site. The buy box is driven by public/js/ataa_store.js. -#}
+
+{% macro buy_box(p) %}
+<div class="ataa-buy ataa-stack" data-ataa-buy="{{ {'code': p.code, 'title': p.title, 'image': p.image or ''} | tojson | forceescape }}">
+	<div class="ataa-divider">حدد خيار التبرع</div>
+	<div class="ataa-chips" role="radiogroup" aria-label="خيارات التبرع">
+		{% for o in p.options %}
+		<button type="button" role="radio" class="ataa-chip{% if loop.first %} is-selected{% endif %}"
+			data-amount="{{ o.amount }}" data-label="{{ o.label | e }}">{{ o.label | e }} <small>{{ o.amount_label }} ر.س</small></button>
+		{% endfor %}
+		{% if p.allow_custom_amount %}
+		<button type="button" role="radio" class="ataa-chip{% if not p.options %} is-selected{% endif %}" data-amount="custom">حدد مبلغ التبرع</button>
+		{% endif %}
+	</div>
+	<label class="ataa-custom" {% if p.options %}hidden{% endif %}>
+		<input type="number" min="1" max="100000" step="1" inputmode="numeric" placeholder="اكتب المبلغ" aria-label="مبلغ التبرع">
+		<span class="ataa-sar">ر.س</span>
+	</label>
+	<div class="ataa-buy__row">
+		<div class="ataa-stepper" aria-label="الكمية">
+			<button type="button" data-step="1" aria-label="زيادة">+</button>
+			<output>1</output>
+			<button type="button" data-step="-1" aria-label="إنقاص">−</button>
+		</div>
+		<div class="ataa-total"><small>المبلغ الكلي</small><strong data-total>0</strong> <span class="ataa-sar">ر.س</span></div>
+	</div>
+	<p class="ataa-error" data-error role="alert" hidden></p>
+	<div class="ataa-buy__actions">
+		<button type="button" class="ataa-btn ataa-btn--gold" data-act="now">تبرع الآن ←</button>
+		<button type="button" class="ataa-btn ataa-btn--outline" data-act="add">أضف للسلة</button>
+		<button type="button" class="ataa-btn ataa-btn--gift" data-act="gift">
+			<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 12h18M12 8S10.5 3 7.5 3a2.5 2.5 0 0 0 0 5M12 8s1.5-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg>
+			اهداء لمن تحب
+		</button>
+	</div>
+</div>
+{% endmacro %}
+
+{% macro project_card(p) %}
+<article class="ataa-card">
+	<a class="ataa-card__media" href="/donate/project?code={{ p.code | urlencode }}">
+		{% if p.image %}<img src="{{ p.image | e }}" alt="{{ p.title | e }}" loading="lazy">
+		{% else %}<div class="ataa-card__placeholder" aria-hidden="true"></div>{% endif %}
+	</a>
+	<div class="ataa-card__body">
+		<h2 class="ataa-card__title"><a href="/donate/project?code={{ p.code | urlencode }}">{{ p.title | e }}</a></h2>
+		{% if p.description %}<p class="ataa-card__desc">{{ p.description | e }}</p>{% endif %}
+		{{ buy_box(p) }}
+	</div>
+</article>
+{% endmacro %}
+
+{% macro pay_logos() %}
+<span class="ataa-logos" aria-label="وسائل الدفع">
+	<span class="ataa-logo ataa-logo--mada">mada</span>
+	<span class="ataa-logo ataa-logo--visa">VISA</span>
+	<span class="ataa-logo ataa-logo--mc">Mastercard</span>
+</span>
+{% endmacro %}

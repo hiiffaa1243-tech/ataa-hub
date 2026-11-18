@@ -13,8 +13,9 @@ from frappe.utils import add_days, get_datetime, nowdate
 
 from ataa_hub.constants import FUND_RESTRICTED
 
+IMG = "/assets/ataa_hub/images/projects/"
 PROJECTS = [
-	# code, title, impact label, units per SAR, target, status, options
+	# code, title, impact label, units per SAR, target, status, options, image, description
 	(
 		"SUQYA-01",
 		"سقيا ضيوف الرحمن",
@@ -22,11 +23,55 @@ PROJECTS = [
 		1.0,
 		500000,
 		"Open",
-		[("سقيا 100 معتمر", 100), ("سقيا 250 معتمر", 250)],
+		[("سقيا 100 معتمر", 100), ("سقيا 250 معتمر", 250), ("سقيا 500 معتمر", 500)],
+		IMG + "suqya.webp",
+		"مياه باردة لضيوف الرحمن في ساحات الحرم ومحطات القطار، توزَّع يومياً طوال الموسم.",
 	),
-	("WAFADA-02", "ضيافة ضيوف الرحمن", "زائر", 0.1, 300000, "Open", [("ضيافة 10 زوار", 150)]),
-	("IFTAR-03", "إفطار صائم", "وجبة", 0.1, 200000, "Open", [("إفطار 10 صائمين", 120)]),
-	("WINTER-06", "حقيبة الشتاء (مغلق)", "حقيبة", 0.004, 80000, "Completed", [("حقيبة شتوية", 250)]),
+	(
+		"WAFADA-02",
+		"مبنى الوفادة",
+		"زائر",
+		0.1,
+		300000,
+		"Open",
+		[("ضيافة 10 زوار", 150), ("ضيافة 50 زائراً", 700)],
+		IMG + "wafada.webp",
+		"استقبال ضيوف الرحمن وضيافتهم في مبنى الوفادة: قهوة وتمر وإرشاد بعدة لغات.",
+	),
+	(
+		"IFTAR-03",
+		"إفطار صائم",
+		"وجبة",
+		0.1,
+		200000,
+		"Open",
+		[("إفطار 10 صائمين", 120), ("إفطار 50 صائماً", 600)],
+		IMG + "iftar.webp",
+		"وجبات إفطار للمعتمرين والصائمين في رمضان وأيام الاثنين والخميس.",
+	),
+	(
+		"MUSHAF-04",
+		"أوقف مصحفاً",
+		"مصحف",
+		0.04,
+		150000,
+		"Open",
+		[("مصحف واحد", 25), ("5 مصاحف", 125), ("10 مصاحف", 250)],
+		IMG + "mushaf.webp",
+		"مصاحف بترجمات مختلفة تُهدى لضيوف الرحمن، ويبقى أجرها وقفاً جارياً لك.",
+	),
+	(
+		"UMBRELLA-05",
+		"مظلة ضيف الرحمن",
+		"مظلة",
+		0.05,
+		100000,
+		"Open",
+		[("مظلة واحدة", 20), ("10 مظلات", 200)],
+		IMG + "umbrella.webp",
+		"مظلات تقي ضيوف الرحمن حر الشمس في الطريق إلى الحرم والمشاعر.",
+	),
+	("WINTER-06", "حقيبة الشتاء (مغلق)", "حقيبة", 0.004, 80000, "Completed", [("حقيبة شتوية", 250)], "", ""),
 ]
 
 CLIENTS = [
@@ -52,7 +97,7 @@ def seed():
 	print(f"API demo ready: {len(projects)} projects, {len(clients)} clients, event {EVENT_CODE}.")
 
 
-def _project(code, title, impact_label, rate, target, status, options):
+def _project(code, title, impact_label, rate, target, status, options, image=None, description=None):
 	name = frappe.db.get_value("Project", {"project_code": code})
 	doc = frappe.get_doc("Project", name) if name else frappe.new_doc("Project")
 	doc.update(
@@ -65,6 +110,8 @@ def _project(code, title, impact_label, rate, target, status, options):
 			"fund_type": FUND_RESTRICTED,
 			"is_public": 1,
 			"public_title": title,
+			"public_image": image or None,
+			"public_description": description or None,
 			"target_amount": target,
 			"allow_custom_amount": 1,
 			"impact_unit_label": impact_label,

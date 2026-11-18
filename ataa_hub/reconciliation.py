@@ -48,7 +48,17 @@ def reconcile(from_date, to_date, payments: list[dict] | None = None) -> list[di
 			"posting_date": ("between", (add_days(from_date, -1), add_days(to_date, 1))),
 		},
 		fields=["name", "payment_reference", "amount", "docstatus", "posting_date"],
+		order_by="name asc",
 	):
+		# A cart checkout is one Moyasar payment for several donations: compare the sum.
+		seen = ours.get(row.payment_reference)
+		if seen:
+			doc = seen[1]
+			doc.name = f"{doc.name}, {row.name}"
+			if row.docstatus == 1:
+				doc.amount = flt(doc.amount) + flt(row.amount) if doc.docstatus == 1 else flt(row.amount)
+				doc.docstatus = 1
+			continue
 		ours[row.payment_reference] = ("Donation", row)
 	for row in frappe.get_all(
 		"Payment Entry",
@@ -125,7 +135,8 @@ def run_daily(today=None, payments: list[dict] | None = None) -> dict:
 		if row["status"] != MISSING_HERE:
 			continue
 		payment = by_id[row["payment_id"]]
-		if (payment.get("metadata") or {}).get("donation_id"):
+		metadata = payment.get("metadata") or {}
+		if metadata.get("donation_id") or metadata.get("donation_ids"):
 			try:
 				if verify_and_record_payment(row["payment_id"], payment).ok:
 					healed.append(row["payment_id"])

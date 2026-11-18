@@ -1,7 +1,20 @@
 {
- "charts": [],
- "content": "[{\"id\": \"h1\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>عطاء — المحاسب</b></span>\", \"col\": 12}}, {\"id\": \"nc0\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Ataa Bank Transfers To Verify\", \"col\": 4}}, {\"id\": \"nc1\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Ataa Requests To Review\", \"col\": 4}}, {\"id\": \"nc2\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Ataa Requests To Pay\", \"col\": 4}}, {\"id\": \"nc3\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Ataa Charges Needing Attention\", \"col\": 4}}, {\"id\": \"nc4\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Ataa Reconciliation Issues\", \"col\": 4}}, {\"id\": \"nc5\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Ataa Donations This Month\", \"col\": 4}}, {\"id\": \"h2\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>اختصارات</b></span>\", \"col\": 12}}, {\"id\": \"sc0\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"التبرعات\", \"col\": 3}}, {\"id\": \"sc1\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"طلبات الصرف\", \"col\": 3}}, {\"id\": \"sc2\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"محاولات خصم العضوية\", \"col\": 3}}, {\"id\": \"sc3\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"عملاء الربط\", \"col\": 3}}, {\"id\": \"sc4\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"مطابقة ميسّر\", \"col\": 3}}, {\"id\": \"sc5\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"التبرعات حسب المشروع والقناة\", \"col\": 3}}, {\"id\": \"sc6\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"دفتر الأستاذ\", \"col\": 3}}]",
- "creation": "2026-11-19 10:00:00.000000",
+ "charts": [
+  {
+   "chart_name": "Ataa Donations Per Month",
+   "label": "التبرعات شهرياً"
+  },
+  {
+   "chart_name": "Ataa Donations By Channel",
+   "label": "التبرعات حسب القناة"
+  },
+  {
+   "chart_name": "Ataa Project Progress",
+   "label": "المستهدف والمحصّل لكل مشروع"
+  }
+ ],
+ "content": "[{\"id\": \"h1\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>عطاء — المحاسب</b></span>\", \"col\": 12}}, {\"id\": \"nc0\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"تحويلات بنكية للتحقق\", \"col\": 4}}, {\"id\": \"nc1\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"طلبات صرف للمراجعة\", \"col\": 4}}, {\"id\": \"nc2\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"طلبات معتمدة للصرف\", \"col\": 4}}, {\"id\": \"nc3\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"عضويات تحتاج متابعة\", \"col\": 4}}, {\"id\": \"nc4\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"فروقات مطابقة ميسّر\", \"col\": 4}}, {\"id\": \"nc5\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"تبرعات هذا الشهر\", \"col\": 4}}, {\"id\": \"ch0\", \"type\": \"chart\", \"data\": {\"chart_name\": \"التبرعات شهرياً\", \"col\": 12}}, {\"id\": \"ch1\", \"type\": \"chart\", \"data\": {\"chart_name\": \"التبرعات حسب القناة\", \"col\": 6}}, {\"id\": \"ch2\", \"type\": \"chart\", \"data\": {\"chart_name\": \"المستهدف والمحصّل لكل مشروع\", \"col\": 6}}, {\"id\": \"h2\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>اختصارات</b></span>\", \"col\": 12}}, {\"id\": \"sc0\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"لوحة التحكم\", \"col\": 3}}, {\"id\": \"sc1\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"العهد\", \"col\": 3}}, {\"id\": \"sc2\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"التبرعات\", \"col\": 3}}, {\"id\": \"sc3\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"طلبات الصرف\", \"col\": 3}}, {\"id\": \"sc4\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"محاولات خصم العضوية\", \"col\": 3}}, {\"id\": \"sc5\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"عملاء الربط\", \"col\": 3}}, {\"id\": \"sc6\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"مطابقة ميسّر\", \"col\": 3}}, {\"id\": \"sc7\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"التبرعات حسب المشروع والقناة\", \"col\": 3}}, {\"id\": \"sc8\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"دفتر الأستاذ\", \"col\": 3}}]",
+ "creation": "2026-11-21 12:00:00.000000",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -12,7 +25,7 @@
  "is_hidden": 0,
  "label": "Ataa Accountant",
  "links": [],
- "modified": "2026-11-19 10:00:00.000000",
+ "modified": "2026-11-21 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Ataa Hub",
  "name": "Ataa Accountant",
@@ -56,6 +69,17 @@
  ],
  "sequence_id": 50.0,
  "shortcuts": [
+  {
+   "label": "لوحة التحكم",
+   "link_to": "ataa-home",
+   "type": "Page"
+  },
+  {
+   "label": "العهد",
+   "link_to": "Custody",
+   "type": "DocType",
+   "doc_view": "List"
+  },
   {
    "label": "التبرعات",
    "link_to": "Donation",

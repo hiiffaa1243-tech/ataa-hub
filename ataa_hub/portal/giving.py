@@ -57,7 +57,15 @@ def membership_card(customer: str) -> frappe._dict | None:
 	c = frappe.db.get_value(
 		"Customer",
 		customer,
-		["membership_tier", "membership_status", "member_since", "honorary_since", "membership_subscription"],
+		[
+			"customer_name",
+			"membership_tier",
+			"membership_status",
+			"member_since",
+			"honorary_since",
+			"membership_subscription",
+			"membership_number",
+		],
 		as_dict=True,
 	)
 	if not c or not c.membership_tier:
@@ -69,6 +77,10 @@ def membership_card(customer: str) -> frappe._dict | None:
 		member_since=c.member_since,
 		honorary=c.membership_tier == TIER_HONORARY,
 		honorary_since=c.honorary_since,
+		holder=c.customer_name,
+		number=memberships.format_membership_number(c.membership_number),
+		finish="Gold",
+		benefits=[],
 	)
 	if card.honorary:
 		card.label, card.colour = HONORARY_LABEL, HONORARY_COLOUR
@@ -79,7 +91,9 @@ def membership_card(customer: str) -> frappe._dict | None:
 		c.membership_tier, ("", c.membership_tier)
 	)[1]
 	card.colour = (row.colour if row else None) or "#AD8F52"
-	card.monthly_amount = flt(row.monthly_amount) if row else None
+	card.annual_amount = flt(row.annual_amount) if row else None
+	card.finish = (row.finish if row else None) or "Silver"
+	card.benefits = [b.strip() for b in ((row.benefits if row else "") or "").splitlines() if b.strip()]
 
 	last = frappe.get_all(
 		"Payment Entry",
@@ -92,12 +106,17 @@ def membership_card(customer: str) -> frappe._dict | None:
 
 	sub = (
 		frappe.db.get_value(
-			"Subscription", c.membership_subscription, ["status", "current_invoice_start"], as_dict=True
+			"Subscription",
+			c.membership_subscription,
+			["status", "current_invoice_start", "current_invoice_end"],
+			as_dict=True,
 		)
 		if c.membership_subscription
 		else None
 	)
 	card.live = bool(sub and sub.status not in ("Cancelled", "Completed"))
+	if sub and sub.current_invoice_end:
+		card.valid_until = frappe.utils.formatdate(sub.current_invoice_end, "MM/yy")
 	card.ends_on = None if card.live or not sub else sub.current_invoice_start
 	open_invoices = memberships.open_membership_invoices(customer)
 	if open_invoices:
@@ -123,7 +142,7 @@ def membership_card(customer: str) -> frappe._dict | None:
 	)
 	card.payment_method = method.title if method else None
 	card.tiers = [
-		frappe._dict(tier=r.tier, label=r.label_ar or r.tier, amount=flt(r.monthly_amount))
+		frappe._dict(tier=r.tier, label=r.label_ar or r.tier, amount=flt(r.annual_amount))
 		for r in memberships.settings().tiers
 		if r.subscription_plan and r.tier != c.membership_tier
 	]

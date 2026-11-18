@@ -35,7 +35,7 @@ def _pl_sum(project: str, accounts: list[str] | None = None) -> float:
 
 
 def get_committed_amount(project: str, exclude_request: str | None = None) -> float:
-	"""Approved disbursements not yet paid (they leave the balance only when paid)."""
+	"""Approved disbursements not yet paid, plus open staff custody (عهد)."""
 	dr = frappe.qb.DocType("Disbursement Request")
 	query = (
 		frappe.qb.from_(dr)
@@ -44,7 +44,19 @@ def get_committed_amount(project: str, exclude_request: str | None = None) -> fl
 	)
 	if exclude_request:
 		query = query.where(dr.name != exclude_request)
-	return flt(query.run()[0][0])
+	return flt(query.run()[0][0]) + get_open_custody_amount(project)
+
+
+def get_open_custody_amount(project: str) -> float:
+	"""Cash advanced to staff (عهد) and not settled yet: already out of the bank, not yet
+	an expense on the project, so it is held back from what can still be spent."""
+	c = frappe.qb.DocType("Custody")
+	return flt(
+		frappe.qb.from_(c)
+		.select(Sum(c.amount))
+		.where((c.project == project) & (c.status.isin(("Open", "Closing Requested"))))
+		.run()[0][0]
+	)
 
 
 def lock_project(project: str) -> None:

@@ -7,3 +7,12 @@ node_modules/
 site_config.json
 *.sqlite
 .ruff_cache/
+
+# Owner's source material kept next to the repo, never published
+/*.avif
+/*.jpg
+/*.pdf
+/*.mp4
+/*.MP4
+/*.PNG
+/فيديوهات العرض/

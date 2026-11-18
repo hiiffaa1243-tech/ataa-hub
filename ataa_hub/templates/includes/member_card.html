@@ -1,0 +1,19 @@
+{#- Bank-style membership card. Expects: card.label, card.colour, card.finish, and optionally
+    card.number (formatted), card.holder, card.valid_until, card.price. -#}
+{% macro member_card(card) %}
+<div class="ataa-bankcard ataa-bankcard--{{ (card.finish or 'Silver') | lower }}" style="--tier: {{ card.colour or '#A7ABB1' }}">
+	<span class="ataa-wave" aria-hidden="true"></span>
+	<div class="ataa-bankcard__top">
+		<div class="ataa-bankcard__brand">عطاء<small>بطاقة عضوية</small></div>
+		<div class="ataa-bankcard__tier"><b>عضوية {{ card.label | e }}</b>{% if card.price %}<span>{{ card.price }} <span class="ataa-sar">ر.س / سنوياً</span></span>{% endif %}</div>
+	</div>
+	<div class="ataa-bankcard__mid">
+		<span class="ataa-chip-gold" aria-hidden="true"></span>
+		<span class="ataa-bankcard__number">{{ card.number or "9600 •••• •••• ••••" }}</span>
+	</div>
+	<div class="ataa-bankcard__bottom">
+		<div><small>MEMBER</small><b>{{ (card.holder or "اسم العضو") | e }}</b></div>
+		<div><small>VALID THRU</small><b dir="ltr">{{ card.valid_until or "عام واحد" }}</b></div>
+	</div>
+</div>
+{% endmacro %}

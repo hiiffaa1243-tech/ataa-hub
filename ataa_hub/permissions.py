@@ -109,6 +109,10 @@ def fund_allocation_query_conditions(user: str | None = None) -> str:
 	return _by_project("Fund Allocation", "to_project", user)
 
 
+def custody_query_conditions(user: str | None = None) -> str:
+	return _by_project("Custody", "project", user)
+
+
 # ------------------------------------------------------------ document checks
 
 
@@ -170,3 +174,13 @@ def disbursement_has_permission(doc, ptype=None, user=None, **kwargs):
 
 def fund_allocation_has_permission(doc, ptype=None, user=None, **kwargs):
 	return _doc_in_assigned_project(doc, "to_project", user)
+
+
+def custody_has_permission(doc, ptype=None, user=None, **kwargs):
+	"""Project managers see custody on their projects; only the holder edits it."""
+	user = user or frappe.session.user
+	if not _doc_in_assigned_project(doc, "project", user):
+		return False
+	if ptype == "write" and not doc.is_new() and is_restricted_project_manager(user):
+		return doc.holder == user
+	return True

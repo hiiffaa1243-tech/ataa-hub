@@ -61,3 +61,23 @@ def get_public_project(project_code: str | None) -> frappe._dict | None:
 		return None
 	row = frappe.get_all("Project", filters={**PUBLIC_FILTERS, "project_code": code}, fields=FIELDS, limit=1)
 	return _decorate(row[0]) if row else None
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+def catalog() -> list[dict]:
+	"""Public catalogue for the quick-donate and "complete your reward" widgets.
+
+	No targets or progress here: the public pages show what to give, not how far a
+	project is from its goal (staff see that in the desk).
+	"""
+	return [
+		{
+			"code": p.code,
+			"title": p.title,
+			"description": p.description,
+			"image": p.image,
+			"allow_custom_amount": bool(p.allow_custom_amount),
+			"options": [{"label": o.label, "amount": o.amount} for o in p.options],
+		}
+		for p in list_public_projects()
+	]

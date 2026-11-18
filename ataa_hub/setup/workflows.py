@@ -116,9 +116,31 @@ def _ensure_masters(spec):
 			)
 
 
+# Read access our roles need on native doctypes that their ERPNext roles don't give.
+# Executive Director (with Auditor) can't read Customer, which the Membership Report is built on.
+EXTRA_READ = {"Customer": ["Executive Director"]}
+
+
+def setup_extra_read_permissions():
+	from frappe.permissions import add_permission
+
+	for doctype, roles in EXTRA_READ.items():
+		for role in roles:
+			key = {"parent": doctype, "role": role, "permlevel": 0}
+			if not frappe.db.exists("Custom DocPerm", key):
+				add_permission(doctype, role, 0)  # Custom DocPerm with read only
+			# Script reports check "report" on their ref doctype.
+			name = frappe.db.get_value("Custom DocPerm", key)
+			if not frappe.db.get_value("Custom DocPerm", name, "report"):
+				frappe.db.set_value("Custom DocPerm", name, "report", 1)
+				frappe.clear_cache(doctype=doctype)
+
+
 def setup_role_profiles():
 	"""Role Profiles pairing our roles with ERPNext's native ones (PRD §8)."""
 	from ataa_hub.constants import ROLE_PROFILES
+
+	setup_extra_read_permissions()
 
 	for name, roles in ROLE_PROFILES.items():
 		profile = (
@@ -126,7 +148,10 @@ def setup_role_profiles():
 			if frappe.db.exists("Role Profile", name)
 			else frappe.new_doc("Role Profile")
 		)
+		wanted = [r for r in roles if frappe.db.exists("Role", r)]
+		if not profile.is_new() and {row.role for row in profile.roles} == set(wanted):
+			continue  # unchanged: saving would queue a job that locks the profile
 		profile.role_profile = name
-		profile.set("roles", [{"role": r} for r in roles if frappe.db.exists("Role", r)])
+		profile.set("roles", [{"role": r} for r in wanted])
 		profile.flags.ignore_permissions = True
 		profile.save()

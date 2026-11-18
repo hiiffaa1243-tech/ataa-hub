@@ -1,0 +1,64 @@
+{#- Quick donate + gift dialogs, available on every public page. -#}
+<dialog class="ataa-modal" id="ataa-quick" aria-labelledby="ataa-quick-title">
+	<form method="dialog" class="ataa-modal__head">
+		<h2 id="ataa-quick-title">التبرع السريع</h2>
+		<button class="ataa-modal__close" aria-label="إغلاق">✕</button>
+	</form>
+	<div class="ataa-modal__body">
+		<label class="ataa-field">
+			<span>نوع التبرع</span>
+			<select data-q="project"><option value="">جاري التحميل…</option></select>
+		</label>
+		<div class="ataa-divider">حدد مبلغ التبرع</div>
+		<div class="ataa-chips" data-q="chips"></div>
+		<label class="ataa-custom" data-q="custom" hidden>
+			<input type="number" min="1" max="100000" step="1" inputmode="numeric" placeholder="اكتب المبلغ" aria-label="المبلغ">
+			<span class="ataa-sar">ر.س</span>
+		</label>
+		<div class="ataa-buy__row">
+			<span class="ataa-hint">يُسجَّل تبرعك على المشروع لحظة الدفع.</span>
+			<div class="ataa-total"><small>المبلغ الكلي</small><strong data-q="total">0</strong> <span class="ataa-sar">ر.س</span></div>
+		</div>
+		<p class="ataa-error" data-q="error" role="alert" hidden></p>
+		<div class="ataa-buy__actions">
+			<button type="button" class="ataa-btn ataa-btn--gold" data-q="now">تبرع الآن ←</button>
+			<button type="button" class="ataa-btn ataa-btn--outline" data-q="add">أضف للسلة</button>
+		</div>
+	</div>
+</dialog>
+
+<dialog class="ataa-modal" id="ataa-gift" aria-labelledby="ataa-gift-title">
+	<form method="dialog" class="ataa-modal__head">
+		<h2 id="ataa-gift-title">اهداء لمن تحب</h2>
+		<button class="ataa-modal__close" aria-label="إغلاق">✕</button>
+	</form>
+	<form class="ataa-modal__body" data-g="form" novalidate>
+		<p class="ataa-notice" data-g="summary"></p>
+		<label class="ataa-field"><span>اسم المهدى إليه</span><input data-g="recipient_name" maxlength="140" required></label>
+		<div class="ataa-row ataa-row--2">
+			<label class="ataa-field"><span>جوال المهدى إليه</span><input data-g="recipient_mobile" dir="ltr" inputmode="tel" placeholder="05XXXXXXXX"></label>
+			<label class="ataa-field"><span>البريد <small>(اختياري)</small></span><input data-g="recipient_email" dir="ltr" type="email" placeholder="name@example.com"></label>
+		</div>
+		<div class="ataa-row ataa-row--2">
+			<label class="ataa-field"><span>اسم المرسل</span><input data-g="sender_name" maxlength="140" autocomplete="name"></label>
+			<label class="ataa-field"><span>المناسبة</span>
+				<select data-g="occasion">
+					<option value="Other">بدون مناسبة</option>
+					<option value="Eid">عيد</option>
+					<option value="Ramadan">رمضان</option>
+					<option value="Wedding">زواج</option>
+					<option value="Newborn">مولود</option>
+					<option value="Graduation">تخرج</option>
+					<option value="In Memory">عن روح متوفى</option>
+				</select>
+			</label>
+		</div>
+		<label class="ataa-field"><span>رسالة الإهداء <small>(اختياري)</small></span><textarea data-g="message" rows="2" maxlength="500"></textarea></label>
+		<label class="ataa-switch"><span>إظهار مبلغ التبرع في بطاقة الإهداء</span><input type="checkbox" data-g="show_amount"></label>
+		<p class="ataa-error" data-g="error" role="alert" hidden></p>
+		<div class="ataa-buy__actions">
+			<button type="button" class="ataa-btn ataa-btn--gold" data-g="now">أرسل الآن ←</button>
+			<button type="button" class="ataa-btn ataa-btn--outline" data-g="add">أضف للسلة</button>
+		</div>
+	</form>
+</dialog>

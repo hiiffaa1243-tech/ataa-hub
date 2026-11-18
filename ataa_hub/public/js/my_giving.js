@@ -42,10 +42,10 @@
 		try {
 			if (button.dataset.action === "change-tier") {
 				const tier = $("new-tier").value;
-				if (!confirm("تغيير المستوى يبدأ من الشهر القادم. متابعة؟")) return;
+				if (!confirm("تغيير المستوى يبدأ من السنة القادمة. متابعة؟")) return;
 				await call("ataa_hub.portal.membership.change_tier", { tier });
 			} else if (button.dataset.action === "cancel") {
-				if (!confirm("إيقاف الاشتراك؟ تبقى عضويتك حتى نهاية الشهر المدفوع.")) return;
+				if (!confirm("إيقاف الاشتراك؟ تبقى عضويتك فعّالة حتى نهاية السنة المدفوعة، ولن يُخصم منك مبلغ آخر.")) return;
 				await call("ataa_hub.portal.membership.cancel_membership");
 			}
 			window.location.reload();

@@ -25,5 +25,5 @@ def get_context(context):
 		tier = result.get("tier") or frappe.db.get_value("Customer", result.customer, "membership_tier")
 		row = tier_row(tier) if tier else None
 		context.tier_label = (row.label_ar if row else None) or tier
-		context.amount_label = fmt_money(row.monthly_amount, currency="SAR") if row else ""
+		context.amount_label = fmt_money(row.annual_amount, currency="SAR") if row else ""
 	return context

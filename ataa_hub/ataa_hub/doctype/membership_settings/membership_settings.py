@@ -10,7 +10,7 @@ class MembershipSettings(Document):
 			if row.tier in seen:
 				frappe.throw(_("المستوى {0} مكرر.").format(row.tier))
 			seen.add(row.tier)
-			if row.monthly_amount <= 0:
+			if row.annual_amount <= 0:
 				frappe.throw(_("مبلغ المستوى {0} يجب أن يكون أكبر من صفر.").format(row.tier))
 		if self.first_retry_days < 1 or self.second_retry_days < 1:
 			frappe.throw(_("أيام إعادة المحاولة يجب أن تكون يوماً واحداً على الأقل."))

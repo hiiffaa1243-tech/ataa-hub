@@ -7,9 +7,9 @@
 	{% if success %}
 	<div class="ataa-result__icon" aria-hidden="true">✓</div>
 	<h1>أهلاً بك عضواً في عطاء</h1>
-	<p>تم تفعيل عضويتك <strong>{{ tier_label | e }}</strong>{% if amount_label %} بمبلغ <strong>{{ amount_label }}</strong> شهرياً{% endif %}.</p>
+	<p>تم تفعيل عضويتك <strong>{{ tier_label | e }}</strong>{% if amount_label %} بمبلغ <strong>{{ amount_label }}</strong> سنوياً{% endif %}.</p>
 	<p>تدخل إلى صفحة عضويتك ببريدك الإلكتروني، ومنها تدير المستوى والبطاقة.</p>
-	<a class="ataa-btn ataa-btn--primary" href="/my-giving">صفحتي</a>
+	<a class="ataa-btn ataa-btn--primary" href="/my-giving">حسابي</a>
 
 	{% elif reason == "verification_unavailable" %}
 	<div class="ataa-result__icon" aria-hidden="true">…</div>
