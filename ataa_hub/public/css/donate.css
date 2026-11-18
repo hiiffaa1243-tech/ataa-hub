@@ -1,157 +1,364 @@
-/* Ataa Hub — public donation pages (RTL) */
-:root {
-	--ataa-primary: #0f766e;
-	--ataa-primary-dark: #115e59;
-	--ataa-accent: #b7791f;
-	--ataa-bg: #f6f7f5;
-	--ataa-surface: #ffffff;
-	--ataa-text: #1f2a2e;
-	--ataa-muted: #5f6b70;
-	--ataa-border: #e3e7e5;
-	--ataa-danger: #b42318;
-	--ataa-radius: 14px;
-	--ataa-shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 6px 20px rgba(16, 24, 40, 0.06);
-}
+/* Ataa Hub — public site (RTL, light, gold). Font: Thmanyah Sans (bundled woff2). */
+@font-face { font-family: "Thmanyah Sans"; src: url("/assets/ataa_hub/fonts/thmanyahsans-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Thmanyah Sans"; src: url("/assets/ataa_hub/fonts/thmanyahsans-Medium.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "Thmanyah Sans"; src: url("/assets/ataa_hub/fonts/thmanyahsans-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "Thmanyah Sans"; src: url("/assets/ataa_hub/fonts/thmanyahsans-Black.woff2") format("woff2"); font-weight: 900; font-display: swap; }
 
-@media (prefers-color-scheme: dark) {
-	:root {
-		--ataa-bg: #0f1514;
-		--ataa-surface: #172120;
-		--ataa-text: #e8eeec;
-		--ataa-muted: #9aa8a5;
-		--ataa-border: #26332f;
-		--ataa-primary: #2bb3a6;
-		--ataa-primary-dark: #22968b;
-	}
+:root {
+	--gold: #ad8f52;
+	--gold-dark: #8f7440;
+	--gold-soft: #f6f1e6;
+	--ink: #1c1c1e;
+	--bg: #f8f7f4;
+	--surface: #ffffff;
+	--soft: #f3f3f2;
+	--muted: #707070;
+	--line: #e9e6df;
+	--danger: #b42318;
+	--ok: #1f7a4d;
+	--radius: 18px;
+	--shadow: 0 1px 2px rgba(20, 20, 20, 0.04), 0 10px 30px rgba(20, 20, 20, 0.06);
+
+	/* aliases kept for older templates */
+	--ataa-primary: var(--gold);
+	--ataa-primary-dark: var(--gold-dark);
+	--ataa-accent: var(--gold);
+	--ataa-bg: var(--bg);
+	--ataa-surface: var(--surface);
+	--ataa-text: var(--ink);
+	--ataa-muted: var(--muted);
+	--ataa-border: var(--line);
+	--ataa-danger: var(--danger);
+	--ataa-radius: var(--radius);
+	--ataa-shadow: var(--shadow);
 }
 
 * { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; font-family: "Thmanyah Sans", system-ui, sans-serif; background: var(--bg); color: var(--ink); line-height: 1.7; }
+a { color: var(--gold-dark); text-decoration: none; }
+button, input, select, textarea { font: inherit; color: inherit; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
 
-body {
-	margin: 0;
-	font-family: "IBM Plex Sans Arabic", system-ui, sans-serif;
-	background: var(--ataa-bg);
-	color: var(--ataa-text);
-	line-height: 1.7;
-}
+.ataa-container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+.ataa-main { padding-top: 28px; padding-bottom: 96px; min-height: 70vh; }
 
-a { color: var(--ataa-primary); text-decoration: none; }
+/* ------------------------------------------------------------------ header */
+.ataa-header { background: var(--surface); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 40; }
+.ataa-header__inner { display: flex; align-items: center; gap: 20px; height: 72px; }
+.ataa-brand { display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 1.35rem; color: var(--ink); }
+.ataa-nav { display: flex; gap: 6px; flex: 1; }
+.ataa-nav a { color: var(--muted); padding: 8px 14px; border-radius: 999px; font-weight: 500; }
+.ataa-nav a:hover, .ataa-nav a.is-active { color: var(--ink); background: var(--soft); }
+.ataa-tools { display: flex; align-items: center; gap: 10px; }
+.ataa-icon-btn { position: relative; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.ataa-icon-btn svg { width: 22px; height: 22px; }
+.ataa-badge { position: absolute; top: -4px; inset-inline-end: -4px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: var(--gold); color: #fff; font-size: 0.72rem; font-weight: 700; display: grid; place-items: center; }
+.ataa-avatar { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: #fff; font-weight: 700; }
+.ataa-login { color: var(--ink); font-weight: 500; padding: 8px 12px; }
+.ataa-menu-btn { display: none; }
 
-.ataa-container { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 16px; }
-.ataa-main { padding-top: 24px; padding-bottom: 48px; min-height: 70vh; }
-
-/* header & footer */
-.ataa-header { background: var(--ataa-surface); border-bottom: 1px solid var(--ataa-border); }
-.ataa-header__inner { display: flex; align-items: center; justify-content: space-between; height: 64px; gap: 16px; }
-.ataa-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.25rem; color: var(--ataa-text); }
-.ataa-nav { display: flex; gap: 18px; font-size: 0.95rem; flex-wrap: wrap; }
-.ataa-nav a { color: var(--ataa-muted); }
-.ataa-nav a:hover { color: var(--ataa-primary); }
-.ataa-footer { border-top: 1px solid var(--ataa-border); padding: 20px 0; color: var(--ataa-muted); font-size: 0.85rem; text-align: center; }
-
-/* hero */
-.ataa-hero { text-align: center; padding: 24px 0 32px; }
-.ataa-hero h1 { font-size: clamp(1.5rem, 4vw, 2.25rem); margin: 0 0 8px; }
-.ataa-hero p { color: var(--ataa-muted); margin: 0; }
-
-/* project cards */
-.ataa-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-.ataa-card { background: var(--ataa-surface); border: 1px solid var(--ataa-border); border-radius: var(--ataa-radius); overflow: hidden; box-shadow: var(--ataa-shadow); display: flex; flex-direction: column; }
-.ataa-card__media img, .ataa-card__placeholder { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
-.ataa-card__placeholder { background: linear-gradient(135deg, var(--ataa-primary), var(--ataa-accent)); }
-.ataa-card__body { padding: 16px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
-.ataa-card__title { font-size: 1.1rem; margin: 0; }
-.ataa-card__desc { color: var(--ataa-muted); margin: 0; font-size: 0.92rem; flex: 1; }
-.ataa-card__stats { display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; color: var(--ataa-muted); gap: 8px; }
-.ataa-card__stats strong { color: var(--ataa-text); }
-
-.ataa-progress { height: 10px; background: var(--ataa-border); border-radius: 999px; overflow: hidden; }
-.ataa-progress--lg { height: 14px; margin-top: 16px; }
-.ataa-progress__bar { height: 100%; background: linear-gradient(90deg, var(--ataa-accent), var(--ataa-primary)); border-radius: 999px; transition: width 0.6s ease; }
-.ataa-pill { background: color-mix(in srgb, var(--ataa-primary) 12%, transparent); color: var(--ataa-primary); padding: 2px 10px; border-radius: 999px; font-weight: 600; }
-
-/* buttons */
-.ataa-btn { display: inline-flex; justify-content: center; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 10px; border: 1px solid transparent; font: inherit; font-weight: 600; cursor: pointer; }
-.ataa-btn--primary { background: var(--ataa-primary); color: #fff; }
-.ataa-btn--primary:hover { background: var(--ataa-primary-dark); }
-.ataa-btn--primary:disabled { opacity: 0.6; cursor: wait; }
-.ataa-btn--ghost { background: transparent; color: var(--ataa-primary); border-color: var(--ataa-border); }
+/* ------------------------------------------------------------------ buttons */
+.ataa-btn { display: inline-flex; justify-content: center; align-items: center; gap: 8px; padding: 11px 22px; border-radius: 12px; border: 1.5px solid transparent; font-weight: 700; cursor: pointer; transition: background 0.15s, transform 0.1s, border-color 0.15s; white-space: nowrap; }
+.ataa-btn:active { transform: translateY(1px); }
+.ataa-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.ataa-btn--primary, .ataa-btn--gold { background: var(--gold); color: #fff; }
+.ataa-btn--primary:hover, .ataa-btn--gold:hover { background: var(--gold-dark); }
+.ataa-btn--outline { background: var(--surface); color: var(--gold-dark); border-color: var(--gold); }
+.ataa-btn--outline:hover { background: var(--gold-soft); }
+.ataa-btn--ghost { background: var(--surface); color: var(--ink); border-color: var(--line); }
+.ataa-btn--ghost:hover { border-color: var(--ink); }
+.ataa-btn--dark { background: var(--ink); color: #fff; }
+.ataa-btn--soft { background: var(--soft); color: var(--ink); }
+.ataa-btn--danger { color: var(--danger); }
 .ataa-btn--block { width: 100%; }
+.ataa-btn--sm { padding: 7px 14px; font-size: 0.9rem; border-radius: 10px; }
 
-/* project page */
-.ataa-back { display: inline-block; margin-bottom: 16px; color: var(--ataa-muted); }
-.ataa-project { display: grid; grid-template-columns: 1.2fr 1fr; gap: 28px; align-items: start; }
-.ataa-project__image { width: 100%; border-radius: var(--ataa-radius); aspect-ratio: 16 / 9; object-fit: cover; }
-.ataa-project h1 { margin: 16px 0 8px; font-size: 1.6rem; }
-.ataa-project p { color: var(--ataa-muted); }
-.ataa-panel { background: var(--ataa-surface); border: 1px solid var(--ataa-border); border-radius: var(--ataa-radius); padding: 20px; box-shadow: var(--ataa-shadow); }
-.ataa-panel h2 { font-size: 1.15rem; margin: 0 0 12px; }
+/* ------------------------------------------------------------------ hero */
+.ataa-hero { position: relative; overflow: hidden; border-radius: 28px; padding: 48px 32px; margin-bottom: 32px; background: radial-gradient(120% 140% at 100% 0%, #c8ad73 0%, var(--gold) 40%, #6f5a30 100%); color: #fff; }
+.ataa-hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.18) 50%, transparent 60%); pointer-events: none; }
+.ataa-hero h1 { font-size: clamp(1.7rem, 4.4vw, 2.8rem); font-weight: 900; margin: 0 0 8px; line-height: 1.3; }
+.ataa-hero p { margin: 0; opacity: 0.9; max-width: 560px; font-size: 1.05rem; }
+.ataa-hero .ataa-btn { margin-top: 20px; background: #fff; color: var(--gold-dark); }
+.ataa-hero--plain { background: none; color: var(--ink); text-align: center; padding: 16px 0 8px; }
+.ataa-hero--plain::after { display: none; }
+.ataa-hero--plain p { color: var(--muted); margin: 0 auto; }
 
+.ataa-section-head { display: flex; align-items: end; justify-content: space-between; gap: 12px; margin: 8px 0 18px; }
+.ataa-section-head h2 { margin: 0; font-size: 1.5rem; font-weight: 900; }
+.ataa-section-head p { margin: 0; color: var(--muted); }
+
+/* ------------------------------------------------------------------ project cards */
+.ataa-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 22px; }
+.ataa-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); display: flex; flex-direction: column; }
+.ataa-card__media { display: block; position: relative; }
+.ataa-card__media img, .ataa-card__placeholder { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.ataa-card__placeholder { background: linear-gradient(135deg, var(--gold), #6f5a30); }
+.ataa-card__body { padding: 18px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+.ataa-card__title { font-size: 1.2rem; font-weight: 700; margin: 0; }
+.ataa-card__title a { color: var(--ink); }
+.ataa-card__desc { background: var(--soft); color: #4a4a4a; border-radius: 12px; padding: 10px 12px; margin: 0; font-size: 0.92rem; line-height: 1.7; }
+.ataa-card__stats { display: flex; justify-content: space-between; color: var(--muted); font-size: 0.9rem; }
+
+.ataa-divider { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 0.85rem; font-weight: 500; }
+.ataa-divider::before, .ataa-divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+.ataa-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.ataa-chip { border: 1.5px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 14px; cursor: pointer; font-size: 0.9rem; font-weight: 500; display: inline-flex; gap: 6px; align-items: center; }
+.ataa-chip:hover { border-color: var(--ink); }
+.ataa-chip.is-selected { background: var(--ink); border-color: var(--ink); color: #fff; }
+.ataa-chip small { opacity: 0.7; font-weight: 400; }
+
+.ataa-buy__row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ataa-custom { display: flex; align-items: center; gap: 8px; border: 1.5px solid var(--ink); border-radius: 12px; padding: 4px 12px; }
+.ataa-custom input { border: 0; outline: 0; width: 100%; padding: 6px 0; background: transparent; }
+.ataa-stepper { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.ataa-stepper button { width: 36px; height: 36px; border: 0; background: var(--soft); cursor: pointer; font-size: 1.1rem; }
+.ataa-stepper output { min-width: 40px; text-align: center; font-weight: 700; }
+.ataa-total { text-align: end; }
+.ataa-total small { display: block; color: var(--muted); font-size: 0.8rem; }
+.ataa-total strong { color: var(--gold); font-size: 1.35rem; font-weight: 900; }
+.ataa-buy__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ataa-buy__actions .ataa-btn--gift { grid-column: 1 / -1; }
+.ataa-btn--gift { background: var(--gold-soft); color: var(--gold-dark); }
+.ataa-btn--gift:hover { background: #efe5cf; }
+.ataa-sar { font-size: 0.8em; font-weight: 500; }
+
+/* ------------------------------------------------------------------ project page */
+.ataa-back { display: inline-flex; gap: 6px; margin-bottom: 16px; color: var(--muted); }
+.ataa-project { display: grid; grid-template-columns: 1.15fr 1fr; gap: 32px; align-items: start; }
+.ataa-project__media { position: relative; }
+.ataa-project__image { display: block; width: 100%; border-radius: 24px; aspect-ratio: 1 / 1; object-fit: cover; box-shadow: var(--shadow); }
+.ataa-share { position: absolute; top: 16px; inset-inline-start: 16px; background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(6px); }
+.ataa-project__info h1, .ataa-project h1 { margin: 0 0 10px; font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 900; }
+.ataa-project__info .ataa-card__desc { font-size: 1rem; }
+.ataa-project p { color: var(--muted); }
+.ataa-impact { display: flex; gap: 10px; align-items: center; background: var(--gold-soft); border-radius: 14px; padding: 12px 14px; color: var(--gold-dark); font-weight: 500; }
+.ataa-panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow); }
+.ataa-panel h2 { font-size: 1.2rem; margin: 0 0 14px; font-weight: 700; }
+.ataa-stack { display: flex; flex-direction: column; gap: 14px; }
+
+/* ------------------------------------------------------------------ forms */
 .ataa-form { display: flex; flex-direction: column; gap: 14px; }
+.ataa-field { display: flex; flex-direction: column; gap: 6px; font-size: 0.92rem; font-weight: 500; }
+.ataa-field small { color: var(--muted); font-weight: 400; }
+.ataa-field input, .ataa-field select, .ataa-field textarea { padding: 11px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); width: 100%; }
+.ataa-field input:focus, .ataa-field select:focus, .ataa-field textarea:focus { outline: 2px solid var(--gold); border-color: transparent; }
+.ataa-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.ataa-row--2 { grid-template-columns: 1fr 1fr; }
+.ataa-switch { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 0.92rem; cursor: pointer; }
+.ataa-switch input { appearance: none; width: 44px; height: 26px; border-radius: 999px; background: var(--line); position: relative; cursor: pointer; transition: background 0.2s; flex: none; }
+.ataa-switch input::after { content: ""; position: absolute; top: 3px; inset-inline-start: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: inset-inline-start 0.2s; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); }
+.ataa-switch input:checked { background: var(--gold); }
+.ataa-switch input:checked::after { inset-inline-start: 21px; }
+.ataa-segment { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; background: var(--soft); border-radius: 12px; padding: 4px; gap: 4px; }
+.ataa-segment label { text-align: center; padding: 8px; border-radius: 9px; cursor: pointer; font-weight: 500; }
+.ataa-segment input { position: absolute; opacity: 0; pointer-events: none; }
+.ataa-segment label:has(input:checked) { background: var(--surface); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); }
+
+/* old option grid (membership callback etc.) */
 .ataa-options { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
-.ataa-option { position: relative; border: 1.5px solid var(--ataa-border); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 2px; }
+.ataa-option { position: relative; border: 1.5px solid var(--line); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 2px; }
 .ataa-option input { position: absolute; opacity: 0; pointer-events: none; }
-.ataa-option:has(input:checked) { border-color: var(--ataa-primary); background: color-mix(in srgb, var(--ataa-primary) 8%, transparent); }
-.ataa-option:has(input:focus-visible) { outline: 2px solid var(--ataa-primary); outline-offset: 2px; }
+.ataa-option:has(input:checked) { border-color: var(--ink); background: var(--soft); }
 .ataa-option__amount { font-weight: 700; }
-.ataa-option__label { font-size: 0.82rem; color: var(--ataa-muted); }
+.ataa-option__label { font-size: 0.82rem; color: var(--muted); }
 
-.ataa-field { display: flex; flex-direction: column; gap: 6px; font-size: 0.92rem; }
-.ataa-field small { color: var(--ataa-muted); }
-.ataa-field input { font: inherit; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--ataa-border); background: var(--ataa-bg); color: var(--ataa-text); }
-.ataa-field input:focus { outline: 2px solid var(--ataa-primary); border-color: transparent; }
-
-.ataa-error { color: var(--ataa-danger); margin: 0; font-size: 0.9rem; }
-.ataa-notice { background: color-mix(in srgb, var(--ataa-accent) 14%, transparent); padding: 12px; border-radius: 10px; margin: 0; font-size: 0.9rem; }
-.ataa-hint { color: var(--ataa-muted); font-size: 0.85rem; }
-.ataa-summary { font-weight: 600; }
-.ataa-empty { text-align: center; color: var(--ataa-muted); }
-
-/* the Moyasar form is LTR inside the RTL page */
+.ataa-error { color: var(--danger); margin: 0; font-size: 0.9rem; }
+.ataa-notice { background: var(--gold-soft); padding: 12px 14px; border-radius: 12px; margin: 0; font-size: 0.92rem; }
+.ataa-hint { color: var(--muted); font-size: 0.85rem; }
+.ataa-summary { font-weight: 700; }
+.ataa-empty { text-align: center; color: var(--muted); padding: 32px 0; }
+.ataa-pill { background: var(--gold-soft); color: var(--gold-dark); padding: 2px 12px; border-radius: 999px; font-weight: 700; font-size: 0.85rem; }
+.ataa-progress { height: 10px; background: var(--line); border-radius: 999px; overflow: hidden; }
+.ataa-progress__bar { height: 100%; background: var(--gold); }
 .mysr-form { direction: ltr; margin: 12px 0; }
 
-/* result page */
-.ataa-result { max-width: 560px; margin: 32px auto; text-align: center; background: var(--ataa-surface); border: 1px solid var(--ataa-border); border-radius: var(--ataa-radius); padding: 32px 20px; box-shadow: var(--ataa-shadow); }
-.ataa-result__icon { width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 12px; display: grid; place-items: center; font-size: 2rem; color: #fff; background: var(--ataa-primary); }
-.ataa-result--fail .ataa-result__icon { background: var(--ataa-danger); }
-.ataa-receipt { display: inline-flex; flex-direction: column; border: 1px dashed var(--ataa-border); border-radius: 12px; padding: 10px 24px; margin: 8px 0 20px; }
-.ataa-receipt span { color: var(--ataa-muted); font-size: 0.85rem; }
+/* ------------------------------------------------------------------ cart */
+.ataa-cart { display: grid; grid-template-columns: 1fr 360px; gap: 24px; align-items: start; }
+.ataa-cart-line { display: grid; grid-template-columns: 72px 1fr auto auto auto; gap: 14px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.ataa-cart-line:last-child { border-bottom: 0; }
+.ataa-cart-line img, .ataa-cart-line .ataa-thumb { width: 72px; height: 72px; border-radius: 14px; object-fit: cover; background: var(--soft); }
+.ataa-cart-line h3 { margin: 0; font-size: 1rem; }
+.ataa-cart-line p { margin: 0; color: var(--muted); font-size: 0.85rem; }
+.ataa-cart-line .ataa-line-total { font-weight: 700; min-width: 90px; text-align: end; }
+.ataa-remove { border: 0; background: none; color: var(--muted); cursor: pointer; padding: 6px; border-radius: 8px; }
+.ataa-remove:hover { color: var(--danger); background: #fdf1f0; }
+.ataa-tag { display: inline-flex; align-items: center; gap: 4px; background: var(--gold-soft); color: var(--gold-dark); border-radius: 999px; padding: 0 10px; font-size: 0.78rem; font-weight: 500; }
+.ataa-summary-card { position: sticky; top: 96px; }
+.ataa-summary-card dl { margin: 0 0 16px; display: grid; gap: 8px; }
+.ataa-summary-card dl div { display: flex; justify-content: space-between; gap: 10px; font-size: 0.92rem; }
+.ataa-summary-card dt { color: var(--muted); }
+.ataa-summary-card dd { margin: 0; font-weight: 500; }
+.ataa-grand { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px dashed var(--line); padding-top: 14px; margin-bottom: 16px; }
+.ataa-grand strong { color: var(--gold); font-size: 1.6rem; font-weight: 900; }
+.ataa-upsell { margin-top: 40px; }
+.ataa-mini-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.ataa-mini { display: flex; gap: 12px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 10px; }
+.ataa-mini img { width: 64px; height: 64px; border-radius: 12px; object-fit: cover; }
+.ataa-mini div { flex: 1; min-width: 0; }
+.ataa-mini strong { display: block; font-size: 0.95rem; }
+.ataa-mini span { color: var(--muted); font-size: 0.82rem; }
+
+/* ------------------------------------------------------------------ checkout */
+.ataa-steps { display: flex; gap: 8px; align-items: center; color: var(--muted); font-size: 0.9rem; margin-bottom: 18px; }
+.ataa-steps b { color: var(--ink); }
+.ataa-accordion { display: flex; flex-direction: column; gap: 12px; }
+.ataa-acc { border: 1.5px solid var(--line); border-radius: 16px; background: var(--surface); overflow: hidden; }
+.ataa-acc.is-open { border-color: var(--ink); }
+.ataa-acc__head { width: 100%; display: flex; align-items: center; gap: 12px; padding: 16px 18px; background: none; border: 0; cursor: pointer; text-align: start; font-weight: 700; font-size: 1.02rem; }
+.ataa-acc__head .ataa-radio { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--line); flex: none; }
+.ataa-acc.is-open .ataa-radio { border: 6px solid var(--ink); }
+.ataa-acc__head .ataa-logos { margin-inline-start: auto; }
+.ataa-acc__body { padding: 0 18px 18px; display: none; }
+.ataa-acc.is-open .ataa-acc__body { display: block; }
+.ataa-logos { display: flex; gap: 6px; flex-wrap: wrap; }
+.ataa-logo { height: 26px; padding: 0 8px; border-radius: 6px; border: 1px solid var(--line); background: #fff; display: inline-grid; place-items: center; font-size: 0.72rem; font-weight: 900; letter-spacing: 0.3px; direction: ltr; }
+.ataa-logo--mada { color: #1c7b3f; }
+.ataa-logo--visa { color: #1a1f71; font-style: italic; }
+.ataa-logo--mc { color: #eb001b; }
+.ataa-logo--apple { color: #000; }
+.ataa-banks { display: grid; gap: 10px; margin-bottom: 14px; }
+.ataa-bank { display: flex; gap: 12px; align-items: center; border: 1.5px solid var(--line); border-radius: 14px; padding: 12px 14px; cursor: pointer; }
+.ataa-bank input { accent-color: var(--ink); }
+.ataa-bank:has(input:checked) { border-color: var(--ink); background: var(--soft); }
+.ataa-bank div { flex: 1; min-width: 0; }
+.ataa-bank strong { display: block; }
+.ataa-bank code { font-family: ui-monospace, monospace; font-size: 0.85rem; color: var(--muted); direction: ltr; display: inline-block; }
+.ataa-copy { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 4px 10px; cursor: pointer; font-size: 0.8rem; }
+.ataa-drop { display: flex; flex-direction: column; align-items: center; gap: 6px; border: 1.5px dashed var(--gold); border-radius: 14px; padding: 20px; background: var(--gold-soft); cursor: pointer; text-align: center; color: var(--gold-dark); font-weight: 500; }
+.ataa-drop input { display: none; }
+.ataa-drop small { color: var(--muted); font-weight: 400; }
+
+/* ------------------------------------------------------------------ result pages */
+.ataa-result { max-width: 600px; margin: 32px auto; text-align: center; background: var(--surface); border: 1px solid var(--line); border-radius: 24px; padding: 36px 22px; box-shadow: var(--shadow); }
+.ataa-result__icon { width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 14px; display: grid; place-items: center; font-size: 2rem; color: #fff; background: var(--gold); }
+.ataa-result--fail .ataa-result__icon { background: var(--danger); }
+.ataa-result h1 { font-weight: 900; margin: 0 0 8px; }
+.ataa-receipt { display: inline-flex; flex-direction: column; border: 1px dashed var(--line); border-radius: 12px; padding: 10px 24px; margin: 8px 0 20px; }
+.ataa-receipt span { color: var(--muted); font-size: 0.85rem; }
 .ataa-receipt strong { font-size: 1.2rem; letter-spacing: 0.5px; }
+.ataa-receipts { list-style: none; padding: 0; margin: 16px 0 24px; display: grid; gap: 8px; text-align: start; }
+.ataa-receipts li { display: flex; justify-content: space-between; gap: 10px; background: var(--soft); border-radius: 12px; padding: 10px 14px; }
 
-@media (max-width: 760px) {
-	.ataa-project { grid-template-columns: 1fr; }
-	.ataa-nav { gap: 12px; font-size: 0.85rem; }
-}
+/* ------------------------------------------------------------------ floating cart pill */
+.ataa-cart-pill { position: fixed; bottom: 20px; inset-inline-start: 50%; transform: translateX(50%); z-index: 50; display: flex; align-items: center; gap: 14px; background: var(--ink); color: #fff; padding: 10px 10px 10px 22px; border-radius: 999px; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25); font-weight: 500; }
+[dir="rtl"] .ataa-cart-pill { padding: 10px 22px 10px 10px; }
+.ataa-cart-pill a { background: var(--gold); color: #fff; padding: 8px 18px; border-radius: 999px; font-weight: 700; }
+.ataa-cart-pill strong { color: #e6cf9c; }
+@keyframes ataa-pop { 0% { transform: translateX(50%) scale(1); } 40% { transform: translateX(50%) scale(1.06); } 100% { transform: translateX(50%) scale(1); } }
+.ataa-cart-pill.is-bump { animation: ataa-pop 0.35s ease; }
 
-/* ---------------------------------------------------------------- donor portal (M6) */
-.ataa-portal h2 { font-size: 1.15rem; margin: 28px 0 12px; }
-.ataa-portal__head h1 { margin: 0 0 12px; }
-.ataa-tabs { display: flex; gap: 6px; flex-wrap: wrap; border-bottom: 1px solid var(--ataa-border); margin-bottom: 20px; }
-.ataa-tabs a { padding: 8px 14px; color: var(--ataa-muted); text-decoration: none; border-bottom: 3px solid transparent; }
-.ataa-tabs a.is-active { color: var(--ataa-primary); border-color: var(--ataa-primary); font-weight: 600; }
-.ataa-member-card { border-radius: 18px; padding: 22px; color: #fff; background: linear-gradient(135deg, var(--tier), color-mix(in srgb, var(--tier) 55%, #111)); box-shadow: var(--ataa-shadow); max-width: 640px; }
-.ataa-member-card__top { display: flex; justify-content: space-between; align-items: center; }
-.ataa-member-card__tier { font-size: 1.4rem; font-weight: 700; }
-.ataa-member-card .ataa-pill { background: rgba(255, 255, 255, 0.2); color: #fff; }
-.ataa-member-card__facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; margin: 16px 0; }
-.ataa-member-card__facts dt { font-size: 0.8rem; opacity: 0.8; }
-.ataa-member-card__facts dd { margin: 2px 0 0; font-weight: 600; }
-.ataa-member-card__actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.ataa-member-card .ataa-btn--ghost { color: #fff; border-color: rgba(255, 255, 255, 0.5); }
-.ataa-member-card select { padding: 8px; border-radius: 8px; border: 0; }
+/* ------------------------------------------------------------------ modals */
+.ataa-modal { border: 0; padding: 0; border-radius: 22px; width: min(520px, calc(100vw - 32px)); max-height: calc(100vh - 32px); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3); background: var(--surface); color: var(--ink); }
+.ataa-modal::backdrop { background: rgba(20, 20, 20, 0.5); backdrop-filter: blur(3px); }
+.ataa-modal__head { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid var(--line); }
+.ataa-modal__head h2 { margin: 0; font-size: 1.2rem; font-weight: 900; }
+.ataa-modal__close { width: 36px; height: 36px; border-radius: 50%; border: 0; background: var(--soft); cursor: pointer; font-size: 1.1rem; }
+.ataa-modal__body { padding: 20px 22px 22px; display: flex; flex-direction: column; gap: 14px; }
+
+.ataa-toast { position: fixed; top: 88px; inset-inline-start: 50%; transform: translateX(50%); background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 12px; z-index: 60; box-shadow: var(--shadow); }
+
+/* ------------------------------------------------------------------ footer */
+.ataa-footer { background: var(--ink); color: #c9c9c9; padding: 32px 0; font-size: 0.9rem; }
+.ataa-footer__inner { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; align-items: center; }
+.ataa-footer a { color: #e6cf9c; margin-inline-start: 16px; }
+
+/* ------------------------------------------------------------------ membership tiers */
+.ataa-tiers { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px; }
+.ataa-tier { display: flex; flex-direction: column; gap: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 24px; padding: 16px; box-shadow: var(--shadow); }
+.ataa-tier.is-selected { outline: 2.5px solid var(--ink); }
+.ataa-tier ul { list-style: none; margin: 0; padding: 0 6px; display: grid; gap: 8px; font-size: 0.92rem; }
+.ataa-tier li { display: flex; gap: 8px; align-items: flex-start; }
+.ataa-tier li::before { content: "✓"; color: var(--gold); font-weight: 900; }
+.ataa-tier__foot { margin-top: auto; display: flex; gap: 8px; }
+.ataa-tier__foot .ataa-btn { flex: 1; }
+
+/* bank-style membership card (shared by /membership and /my-giving) */
+.ataa-bankcard { --tier: #a7abb1; position: relative; aspect-ratio: 1.586 / 1; width: 100%; border-radius: 20px; overflow: hidden; color: #fff; padding: 22px 24px; display: flex; flex-direction: column; justify-content: space-between; isolation: isolate; box-shadow: 0 18px 40px -12px color-mix(in srgb, var(--tier) 70%, #000), inset 0 1px 0 rgba(255, 255, 255, 0.35); background: linear-gradient(135deg, color-mix(in srgb, var(--tier) 70%, #fff) 0%, var(--tier) 42%, color-mix(in srgb, var(--tier) 62%, #000) 100%); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25); }
+.ataa-bankcard::before { content: ""; position: absolute; inset: 0; z-index: -1; background: repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.05) 0 2px, transparent 2px 7px), radial-gradient(90% 70% at 110% -10%, rgba(255, 255, 255, 0.45), transparent 60%), radial-gradient(70% 60% at -10% 120%, rgba(0, 0, 0, 0.25), transparent 60%); }
+.ataa-bankcard::after { content: ""; position: absolute; top: -60%; left: -40%; width: 60%; height: 220%; z-index: -1; transform: rotate(25deg); background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent); animation: ataa-sheen 6s ease-in-out infinite; }
+@keyframes ataa-sheen { 0%, 60% { left: -60%; } 100% { left: 130%; } }
+@media (prefers-reduced-motion: reduce) { .ataa-bankcard::after { animation: none; } }
+.ataa-bankcard--graphite { color: #fff; }
+.ataa-bankcard__top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.ataa-bankcard__brand { font-weight: 900; font-size: 1.05rem; letter-spacing: 0.3px; }
+.ataa-bankcard__brand small { display: block; font-weight: 500; font-size: 0.78rem; opacity: 0.85; }
+.ataa-bankcard__tier { text-align: end; }
+.ataa-bankcard__tier b { display: block; font-size: 1.35rem; font-weight: 900; line-height: 1.2; }
+.ataa-bankcard__tier span { font-size: 0.85rem; opacity: 0.9; }
+.ataa-chip-gold { width: 46px; height: 34px; border-radius: 7px; background: linear-gradient(135deg, #f3e2a9, #c9a24a 50%, #f1dc9c); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15); position: relative; }
+.ataa-chip-gold::before { content: ""; position: absolute; inset: 8px 6px; border: 1px solid rgba(0, 0, 0, 0.25); border-radius: 4px; }
+.ataa-bankcard__mid { display: flex; align-items: center; gap: 14px; }
+.ataa-bankcard__number { direction: ltr; font-family: "OCR A Std", "Courier New", ui-monospace, monospace; font-size: clamp(1.05rem, 2.6vw, 1.45rem); letter-spacing: 2.5px; font-weight: 700; text-align: left; }
+.ataa-bankcard__bottom { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; }
+.ataa-bankcard__bottom small { display: block; font-size: 0.68rem; opacity: 0.8; letter-spacing: 0.5px; }
+.ataa-bankcard__bottom b { font-weight: 700; font-size: 0.95rem; }
+.ataa-bankcard__price { font-size: 1.15rem; font-weight: 900; }
+.ataa-bankcard__price .ataa-sar { font-weight: 500; }
+.ataa-wave { position: absolute; inset-inline-end: -30px; bottom: -40px; width: 200px; height: 200px; border-radius: 50%; border: 18px solid rgba(255, 255, 255, 0.08); z-index: -1; }
+
+/* ------------------------------------------------------------------ donor portal */
+.ataa-portal { display: grid; grid-template-columns: 240px 1fr; gap: 28px; align-items: start; }
+.ataa-portal__side { position: sticky; top: 96px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; }
+.ataa-portal__who { display: flex; gap: 10px; align-items: center; padding-bottom: 14px; margin-bottom: 10px; border-bottom: 1px solid var(--line); }
+.ataa-portal__who strong { display: block; line-height: 1.3; }
+.ataa-portal__who span { color: var(--muted); font-size: 0.8rem; }
+.ataa-tabs { display: flex; flex-direction: column; gap: 4px; }
+.ataa-tabs a { padding: 10px 12px; border-radius: 12px; color: var(--muted); font-weight: 500; }
+.ataa-tabs a:hover { background: var(--soft); color: var(--ink); }
+.ataa-tabs a.is-active { background: var(--ink); color: #fff; }
+.ataa-portal__main h1 { margin: 0 0 18px; font-weight: 900; font-size: 1.6rem; }
+.ataa-portal__main h2 { font-size: 1.2rem; margin: 30px 0 14px; font-weight: 700; }
+.ataa-member { display: grid; grid-template-columns: minmax(280px, 420px) 1fr; gap: 22px; align-items: start; }
+.ataa-member-card { max-width: 420px; }
+.ataa-facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin: 0; }
+.ataa-facts div { background: var(--soft); border-radius: 12px; padding: 10px 12px; }
+.ataa-facts dt { font-size: 0.78rem; color: var(--muted); }
+.ataa-facts dd { margin: 2px 0 0; font-weight: 700; }
+.ataa-member__actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 14px; }
+.ataa-member__actions select { padding: 9px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); }
+.ataa-benefits { list-style: none; padding: 0; margin: 14px 0 0; display: grid; gap: 6px; font-size: 0.9rem; }
+.ataa-benefits li::before { content: "✓ "; color: var(--gold); font-weight: 900; }
 .ataa-inline { display: inline-flex; gap: 6px; align-items: center; }
-.ataa-amount { font-size: 1.3rem; font-weight: 700; margin-top: 4px; }
-.ataa-table { width: 100%; border-collapse: collapse; background: var(--ataa-surface); border-radius: var(--ataa-radius); overflow: hidden; }
-.ataa-table th, .ataa-table td { padding: 10px; border-bottom: 1px solid var(--ataa-border); text-align: right; font-size: 0.92rem; }
-.ataa-table th { background: color-mix(in srgb, var(--ataa-primary) 8%, transparent); }
-.ataa-table tr.is-cancelled td { color: var(--ataa-muted); text-decoration: line-through; }
+.ataa-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+.ataa-stat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; }
+.ataa-stat span { color: var(--muted); font-size: 0.85rem; }
+.ataa-amount { font-size: 1.4rem; font-weight: 900; margin-top: 4px; }
+.ataa-table-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: auto; }
+.ataa-table { width: 100%; border-collapse: collapse; background: var(--surface); }
+.ataa-table th, .ataa-table td { padding: 12px 14px; border-bottom: 1px solid var(--line); text-align: right; font-size: 0.92rem; }
+.ataa-table th { background: var(--soft); font-weight: 700; color: #4a4a4a; }
+.ataa-table tr:last-child td { border-bottom: 0; }
+.ataa-table tr.is-cancelled td { color: var(--muted); text-decoration: line-through; }
 .ataa-actions a { margin-inline-end: 10px; }
-.ataa-filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin-bottom: 16px; }
+.ataa-filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin-bottom: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; }
 .ataa-filters label { display: flex; flex-direction: column; font-size: 0.85rem; gap: 4px; }
-.ataa-filters input, .ataa-filters select { padding: 8px; border: 1px solid var(--ataa-border); border-radius: 8px; }
+.ataa-filters input, .ataa-filters select { padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
 .ataa-narrow { max-width: 480px; }
-.ataa-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.ataa-btn--danger { color: #fff; }
-.ataa-gift { max-width: 560px; margin: 32px auto; text-align: center; border: 2px solid var(--ataa-primary); border-radius: 18px; padding: 28px 20px; background: var(--ataa-surface); }
+.ataa-gift { max-width: 560px; margin: 32px auto; text-align: center; border: 2px solid var(--gold); border-radius: 24px; padding: 28px 20px; background: var(--surface); }
 .ataa-gift blockquote { font-size: 1.1rem; margin: 18px auto; max-width: 90%; }
-@media (max-width: 640px) { .ataa-table th:nth-child(2), .ataa-table td:nth-child(2) { display: none; } }
+
+/* ------------------------------------------------------------------ responsive */
+@media (max-width: 900px) {
+	.ataa-project, .ataa-cart, .ataa-portal, .ataa-member { grid-template-columns: 1fr; }
+	.ataa-summary-card, .ataa-portal__side { position: static; }
+	.ataa-tabs { flex-direction: row; overflow-x: auto; }
+	.ataa-tabs a { white-space: nowrap; }
+}
+@media (max-width: 760px) {
+	.ataa-header__inner { height: 64px; gap: 10px; }
+	.ataa-nav { display: none; position: absolute; top: 64px; inset-inline: 0; background: var(--surface); border-bottom: 1px solid var(--line); flex-direction: column; padding: 8px 16px 16px; }
+	.ataa-nav.is-open { display: flex; }
+	.ataa-menu-btn { display: grid; }
+	.ataa-tools { margin-inline-start: auto; }
+	.ataa-quick-label { display: none; }
+	.ataa-hero { padding: 32px 20px; border-radius: 22px; }
+	.ataa-tiers { grid-template-columns: 1fr; }
+	.ataa-cart-line { grid-template-columns: 56px 1fr auto; }
+	.ataa-cart-line img, .ataa-cart-line .ataa-thumb { width: 56px; height: 56px; }
+	.ataa-cart-line .ataa-stepper { grid-column: 2; }
+	.ataa-row { grid-template-columns: 1fr 1fr; }
+	.ataa-table th:nth-child(2), .ataa-table td:nth-child(2) { display: none; }
+}

@@ -40,6 +40,7 @@ ACC_MOYASAR_CLEARING = "moyasar_clearing"
 ACC_STORE_CLEARING = "store_clearing"
 ACC_POS_CLEARING = "pos_clearing"
 ACC_MAIN_BANK = "main_bank"
+ACC_CUSTODY = "custody"
 
 ACCOUNTS = {
 	ACC_RESTRICTED_INCOME: ("Restricted Donations Income", "Income", "Income Account", "Direct Income"),
@@ -52,6 +53,7 @@ ACCOUNTS = {
 	ACC_STORE_CLEARING: ("Online Store Clearing", "Asset", "Bank", "Bank Accounts"),
 	ACC_POS_CLEARING: ("mada POS Clearing", "Asset", "Bank", "Bank Accounts"),
 	ACC_MAIN_BANK: ("Main Bank Account", "Asset", "Bank", "Bank Accounts"),
+	ACC_CUSTODY: ("Staff Custody", "Asset", "", "Current Assets"),
 }
 
 # Accounts whose credit is "donation income" for progress bars (PRD §6.2)
@@ -71,19 +73,85 @@ MODES_OF_PAYMENT = {
 CUSTOMER_GROUP_DONORS = "Donors"
 ITEM_GROUP_MEMBERSHIPS = "Memberships"
 
-TIER_BRONZE = "Bronze"
-TIER_SILVER = "Silver"
-TIER_GOLD = "Gold"
-TIER_PLATINUM = "Platinum"
+TIER_MUAZIR = "Muazir"
+TIER_MUSANID = "Musanid"
+TIER_AOUN = "Aoun"
+TIER_ADEED = "Adeed"
+TIER_KAREEM = "Kareem"
+TIER_DAEM = "Daem"
 TIER_HONORARY = "Honorary"
 
-# tier -> (default monthly amount in SAR, Arabic label, colour)
+_INFO = "تلقي المعلومات الأساسية عن نشاطات الجمعية بشكل دوري."
+_COOPERATE = "التعاون مع الجمعية ومنسوبيها في تحقيق أهدافها."
+_TAKE_PART = "إتاحة الفرصة للعضو للمشاركة في أنشطة الجمعية."
+_PUBLICATIONS = "الحصول على مطبوعات الجمعية إلكترونياً."
+_HALF_TO_PROJECTS = "صرف 50% من قيمة العضوية في مشاريع الجمعية."
+_SHARE_NEEDS = "الحصول على نسبة معينة في حال حدوث أي احتياج مالي للجمعية."
+
+# Annual memberships. tier -> (annual amount in SAR, Arabic label, colour, card finish, benefits)
 PAID_TIERS = {
-	TIER_BRONZE: (50, "برونزي", "#B08D57"),
-	TIER_SILVER: (100, "فضي", "#9CA3AF"),
-	TIER_GOLD: (250, "ذهبي", "#AD8F52"),
-	TIER_PLATINUM: (500, "بلاتيني", "#4B5563"),
+	TIER_MUAZIR: (
+		1000,
+		"المؤازر",
+		"#A7ABB1",
+		"Silver",
+		(
+			"إدراج اسم العضو في السجل الخاص بالعضويات بالجمعية.",
+			_COOPERATE,
+			_TAKE_PART,
+			"دعوة خاصة لحضور مناسبات الجمعية الرسمية وفعالياتها المميزة.",
+		),
+	),
+	TIER_MUSANID: (2000, "المساند", "#6B7078", "Graphite", (_INFO, _COOPERATE, _TAKE_PART)),
+	TIER_AOUN: (
+		5000,
+		"العون",
+		"#B9BDC3",
+		"Silver",
+		(_INFO, _COOPERATE, _TAKE_PART, _PUBLICATIONS, _HALF_TO_PROJECTS, _SHARE_NEEDS),
+	),
+	TIER_ADEED: (
+		10000,
+		"العضيد",
+		"#B49A68",
+		"Gold",
+		(_INFO, _COOPERATE, _TAKE_PART, _PUBLICATIONS, _HALF_TO_PROJECTS, _SHARE_NEEDS),
+	),
+	TIER_KAREEM: (
+		50000,
+		"الكريم",
+		"#A8915F",
+		"Gold",
+		(
+			"حق الحضور في اجتماعات الجمعية العمومية دون تصويت.",
+			_COOPERATE,
+			_INFO,
+			_TAKE_PART,
+			_PUBLICATIONS,
+			_HALF_TO_PROJECTS,
+			_SHARE_NEEDS,
+		),
+	),
+	TIER_DAEM: (
+		100000,
+		"الداعم",
+		"#96804F",
+		"Gold",
+		(
+			"حق الحضور والتصويت في الجمعية العمومية وانتخابات مجلس الإدارة.",
+			_COOPERATE,
+			_INFO,
+			_TAKE_PART,
+			_PUBLICATIONS,
+			_HALF_TO_PROJECTS,
+			_SHARE_NEEDS,
+		),
+	),
 }
+CARD_FINISHES = ("Silver", "Graphite", "Copper", "Platinum", "Gold")
+
+# Membership card number: fixed prefix + 2-digit year + 10-digit sequence (16 digits)
+MEMBERSHIP_NUMBER_PREFIX = "9600"
 
 MEMBERSHIP_STATUSES = ("Active", "Payment Pending", "Suspended", "Cancelled")
 

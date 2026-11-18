@@ -1,0 +1,68 @@
+{
+ "creation": "2026-11-18 16:00:00.000000",
+ "modified": "2026-11-18 16:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "module": "Ataa Hub",
+ "engine": "InnoDB",
+ "doctype": "DocType",
+ "docstatus": 0,
+ "idx": 0,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "links": [],
+ "name": "Custody Expense",
+ "istable": 1,
+ "editable_grid": 1,
+ "field_order": [
+  "expense_date",
+  "description",
+  "supplier_name",
+  "amount",
+  "invoice"
+ ],
+ "fields": [
+  {
+   "fieldname": "expense_date",
+   "fieldtype": "Date",
+   "label": "Date",
+   "reqd": 1,
+   "in_list_view": 1,
+   "default": "Today",
+   "columns": 2
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "label": "Description",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 3
+  },
+  {
+   "fieldname": "supplier_name",
+   "fieldtype": "Data",
+   "label": "Supplier",
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "label": "Amount",
+   "reqd": 1,
+   "in_list_view": 1,
+   "options": "SAR",
+   "columns": 1
+  },
+  {
+   "fieldname": "invoice",
+   "fieldtype": "Attach",
+   "label": "Invoice",
+   "in_list_view": 1,
+   "columns": 2
+  }
+ ],
+ "permissions": []
+}

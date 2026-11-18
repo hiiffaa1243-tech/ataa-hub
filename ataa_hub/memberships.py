@@ -38,6 +38,7 @@ from ataa_hub.ataa_hub.doctype.membership_charge_attempt.membership_charge_attem
 from ataa_hub.ataa_hub.doctype.moyasar_settings.moyasar_settings import get_moyasar_config
 from ataa_hub.constants import (
 	CUSTOMER_GROUP_DONORS,
+	MEMBERSHIP_NUMBER_PREFIX,
 	ROLE_ACCOUNTANT,
 	ROLE_EXECUTIVE,
 	TIER_HONORARY,
@@ -174,16 +175,16 @@ def start_signup_for(tier, full_name=None, email=None, mobile=None) -> dict:
 	intent = frappe.generate_hash(length=24)
 	frappe.cache.set_value(
 		SIGNUP_CACHE_KEY + intent,
-		{"tier": tier, "customer": customer, "email": email, "amount": flt(row.monthly_amount)},
+		{"tier": tier, "customer": customer, "email": email, "amount": flt(row.annual_amount)},
 		expires_in_sec=SIGNUP_TTL,
 	)
 	return {
 		"intent": intent,
 		"tier": tier,
-		"amount": flt(row.monthly_amount),
-		"amount_halalas": halalas(row.monthly_amount),
+		"amount": flt(row.annual_amount),
+		"amount_halalas": halalas(row.annual_amount),
 		"currency": "SAR",
-		"description": f"عضوية عطاء — {row.label_ar or tier} (شهري)",
+		"description": f"عضوية عطاء — {row.label_ar or tier} (سنوية)",
 		"publishable_key": config.publishable_key,
 		"callback_url": get_url("/membership/callback"),
 		"metadata": {"membership_signup": intent},
@@ -682,6 +683,20 @@ def refresh_membership_status(customer: str, today=None) -> str | None:
 # ================================================================ doc_events
 
 
+def new_membership_number() -> str:
+	"""16 digits shown on the member's card: prefix + 2-digit year + sequence. Never changes,
+	even when the member changes tier."""
+	from frappe.model.naming import getseries
+
+	year = getdate(nowdate()).strftime("%y")
+	return f"{MEMBERSHIP_NUMBER_PREFIX}{year}{getseries('ATAA-MEMBERSHIP-NO-', 10)}"
+
+
+def format_membership_number(number: str | None) -> str:
+	digits = (number or "").strip()
+	return " ".join(digits[i : i + 4] for i in range(0, len(digits), 4))
+
+
 def on_subscription_update(doc, method=None):
 	"""Keep tier / status / subscription on the Customer in line (PRD §9.1)."""
 	if doc.party_type != "Customer" or not doc.plans:
@@ -697,6 +712,8 @@ def on_subscription_update(doc, method=None):
 		if doc.status in ("Cancelled", "Completed") or has_live_membership(doc.party):
 			return
 	values = {"membership_subscription": doc.name}
+	if not frappe.db.get_value("Customer", doc.party, "membership_number"):
+		values["membership_number"] = new_membership_number()
 	if not current.honorary_since:
 		values["membership_tier"] = tier
 	if not current.member_since:
@@ -780,7 +797,7 @@ def update_card(customer, token_id) -> dict:
 
 
 def cancel_membership(customer) -> str:
-	"""Stop billing now; the donor stays Active until the month already paid ends.
+	"""Stop billing now; the donor stays Active until the year already paid ends.
 
 	ERPNext's own `cancel_at_period_end` would still bill one more month here, because
 	after the first invoice its "current period" is already the *next* month (M0 finding).
@@ -797,7 +814,7 @@ def _stop_billing(subscription) -> str:
 
 
 def close_ended_memberships(today=None) -> None:
-	"""Daily: a cancelled membership turns Cancelled once its paid month is over."""
+	"""Daily: a cancelled membership turns Cancelled once its paid year is over."""
 	subscription = frappe.qb.DocType("Subscription")
 	customer = frappe.qb.DocType("Customer")
 	rows = (
@@ -846,12 +863,10 @@ def evaluate_honorary(today=None) -> list[str]:
 
 
 def grant_honorary_to(customer, today=None) -> None:
-	frappe.db.set_value(
-		"Customer",
-		customer,
-		{"membership_tier": TIER_HONORARY, "honorary_since": getdate(today or nowdate())},
-		update_modified=False,
-	)
+	values = {"membership_tier": TIER_HONORARY, "honorary_since": getdate(today or nowdate())}
+	if not frappe.db.get_value("Customer", customer, "membership_number"):
+		values["membership_number"] = new_membership_number()
+	frappe.db.set_value("Customer", customer, values, update_modified=False)
 	if settings().honorary_policy == POLICY_CANCEL_PAID and has_live_membership(customer):
 		_stop_billing(_live_subscription(customer))
 	refresh_membership_status(customer)

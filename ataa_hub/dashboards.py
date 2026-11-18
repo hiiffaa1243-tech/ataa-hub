@@ -68,14 +68,15 @@ def active_members(filters=None):
 
 
 @frappe.whitelist()
-def monthly_recurring_revenue(filters=None):
+def membership_revenue(filters=None):
+	"""Annual recurring revenue from paying members (memberships are billed yearly)."""
 	frappe.only_for(LEADERSHIP)
 	amounts = {
-		r.tier: flt(r.monthly_amount)
+		r.tier: flt(r.annual_amount)
 		for r in frappe.get_all(
 			"Membership Tier",
 			filters={"parenttype": "Membership Settings"},
-			fields=["tier", "monthly_amount"],
+			fields=["tier", "annual_amount"],
 		)
 	}
 	billed = frappe.get_all(
@@ -195,7 +196,7 @@ CARDS = {
 	# name: (label, method, colour)
 	"Ataa Donations This Month": ("تبرعات هذا الشهر", "donations_this_month", "#AD8F52"),
 	"Ataa Active Members": ("الأعضاء النشطون", "active_members", "#1F6F5C"),
-	"Ataa MRR": ("الإيراد الشهري المتكرر", "monthly_recurring_revenue", "#1F6F5C"),
+	"Ataa Membership Revenue": ("إيراد العضويات السنوي", "membership_revenue", "#1F6F5C"),
 	"Ataa Approvals Waiting": ("موافقات بانتظارك", "approvals_waiting", "#B45309"),
 	"Ataa Restricted Balance": ("رصيد المشاريع المقيدة", "restricted_balance", "#AD8F52"),
 	"Ataa Unrestricted Balance": ("رصيد الصندوق العام", "unrestricted_balance", "#4B5563"),

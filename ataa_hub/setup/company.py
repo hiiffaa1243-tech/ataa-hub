@@ -5,15 +5,16 @@ Creates, for the association's company:
 - Modes of Payment for every channel, pointing at those accounts,
 - the Customer Group "Donors" and Item Group "Memberships",
 - the GENERAL (unrestricted) Project,
-- one Item + monthly Subscription Plan per paid membership tier,
+- one Item + yearly Subscription Plan per paid membership tier,
 and fills Ataa Settings / Membership Settings where they are still empty.
 Nothing that a user already changed is overwritten.
 """
 
 import frappe
-from frappe.utils import flt
+from frappe.utils import add_days, add_years, flt, getdate, nowdate
 
 from ataa_hub.constants import (
+	ACC_CUSTODY,
 	ACC_MAIN_BANK,
 	ACC_MEMBERSHIP_INCOME,
 	ACC_PROGRAM_EXPENSES,
@@ -64,6 +65,7 @@ def setup_company(company=None) -> bool:
 		return False
 
 	ensure_groups()
+	ensure_fiscal_years(company)
 	accounts = ensure_accounts(company)
 	modes = ensure_modes_of_payment(company, accounts)
 	general = ensure_general_project(company)
@@ -71,6 +73,45 @@ def setup_company(company=None) -> bool:
 	fill_membership_settings(accounts)
 	sync_membership_tiers()
 	return True
+
+
+# --------------------------------------------------------------- fiscal years
+
+
+def ensure_fiscal_years(company, days_ahead: int = 400):
+	"""Annual memberships invoice a year ahead: make sure a fiscal year exists for it.
+
+	Each new year copies the length of the latest one (calendar years stay calendar years).
+	"""
+	horizon = getdate(add_days(nowdate(), days_ahead))
+	for _ in range(5):
+		latest = frappe.get_all(
+			"Fiscal Year",
+			filters={"disabled": 0},
+			fields=["name", "year_start_date", "year_end_date"],
+			order_by="year_end_date desc",
+			limit=1,
+		)
+		if not latest or getdate(latest[0].year_end_date) >= horizon:
+			return
+		start = add_days(latest[0].year_end_date, 1)
+		end = add_days(add_years(start, 1), -1)
+		name = (
+			str(getdate(start).year)
+			if getdate(start).year == getdate(end).year
+			else f"{getdate(start).year}-{getdate(end).year}"
+		)
+		if frappe.db.exists("Fiscal Year", name):
+			return
+		frappe.get_doc(
+			{
+				"doctype": "Fiscal Year",
+				"year": name,
+				"year_start_date": start,
+				"year_end_date": end,
+				"companies": [{"company": company}],
+			}
+		).insert(ignore_permissions=True)
 
 
 # --------------------------------------------------------------------- groups
@@ -222,6 +263,7 @@ def fill_ataa_settings(company, accounts, modes, general):
 		"fund_transfers_in_account": accounts[ACC_TRANSFERS_IN],
 		"fund_transfers_out_account": accounts[ACC_TRANSFERS_OUT],
 		"main_bank_account": accounts[ACC_MAIN_BANK],
+		"custody_account": accounts[ACC_CUSTODY],
 		**modes,
 	}
 	if _fill(settings, values):
@@ -233,9 +275,17 @@ def fill_membership_settings(accounts):
 	settings = frappe.get_single("Membership Settings")
 	changed = _fill(settings, {"membership_income_account": accounts[ACC_MEMBERSHIP_INCOME]})
 	if not settings.tiers:
-		for tier, (amount, label, colour) in PAID_TIERS.items():
+		for tier, (amount, label, colour, finish, benefits) in PAID_TIERS.items():
 			settings.append(
-				"tiers", {"tier": tier, "label_ar": label, "monthly_amount": amount, "colour": colour}
+				"tiers",
+				{
+					"tier": tier,
+					"label_ar": label,
+					"annual_amount": amount,
+					"colour": colour,
+					"finish": finish,
+					"benefits": "\n".join(benefits),
+				},
 			)
 		changed = True
 	if changed:
@@ -252,7 +302,7 @@ def _default_uom():
 
 
 def sync_membership_tiers():
-	"""One Item + monthly Subscription Plan per tier row, kept at the configured amount."""
+	"""One Item + yearly Subscription Plan per tier row, kept at the configured amount."""
 	company = frappe.db.get_single_value("Ataa Settings", "company")
 	if not company or not frappe.db.exists("Item Group", ITEM_GROUP_MEMBERSHIPS):
 		return
@@ -262,7 +312,7 @@ def sync_membership_tiers():
 	for row in frappe.get_all(
 		"Membership Tier",
 		filters={"parent": "Membership Settings", "parenttype": "Membership Settings"},
-		fields=["name", "tier", "label_ar", "monthly_amount", "item", "subscription_plan"],
+		fields=["name", "tier", "label_ar", "annual_amount", "item", "subscription_plan"],
 	):
 		item_code = f"MEMBERSHIP-{row.tier.upper()}"
 		if not frappe.db.exists("Item", item_code):
@@ -271,7 +321,7 @@ def sync_membership_tiers():
 					"doctype": "Item",
 					"item_code": item_code,
 					"item_name": f"عضوية {row.label_ar or row.tier}",
-					"description": f"{row.tier} membership, billed monthly",
+					"description": f"{row.tier} membership, billed yearly",
 					"item_group": ITEM_GROUP_MEMBERSHIPS,
 					"stock_uom": _default_uom(),
 					"is_stock_item": 0,
@@ -285,11 +335,11 @@ def sync_membership_tiers():
 			)
 			item.insert(ignore_permissions=True)
 
-		plan_name = f"{row.tier} Monthly"
+		plan_name = f"{row.tier} Annual"
 		if frappe.db.exists("Subscription Plan", plan_name):
-			if flt(frappe.db.get_value("Subscription Plan", plan_name, "cost")) != flt(row.monthly_amount):
+			if flt(frappe.db.get_value("Subscription Plan", plan_name, "cost")) != flt(row.annual_amount):
 				plan = frappe.get_doc("Subscription Plan", plan_name)
-				plan.cost = row.monthly_amount
+				plan.cost = row.annual_amount
 				plan.save(ignore_permissions=True)
 		else:
 			frappe.get_doc(
@@ -299,8 +349,8 @@ def sync_membership_tiers():
 					"item": item_code,
 					"currency": currency,
 					"price_determination": "Fixed Rate",
-					"cost": row.monthly_amount,
-					"billing_interval": "Month",
+					"cost": row.annual_amount,
+					"billing_interval": "Year",
 					"billing_interval_count": 1,
 				}
 			).insert(ignore_permissions=True)

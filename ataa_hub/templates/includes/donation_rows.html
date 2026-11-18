@@ -1,5 +1,5 @@
 {% if rows %}
-<table class="ataa-table">
+<div class="ataa-table-wrap"><table class="ataa-table">
 	<tr><th>التاريخ</th><th>رقم الإيصال</th><th>المشروع</th><th>المبلغ</th><th></th></tr>
 	{% for r in rows %}
 	<tr class="{% if r.cancelled %}is-cancelled{% endif %}">
@@ -15,7 +15,7 @@
 		</td>
 	</tr>
 	{% endfor %}
-</table>
+</table></div>
 {% else %}
 <p class="ataa-empty">لا توجد تبرعات.</p>
 {% endif %}

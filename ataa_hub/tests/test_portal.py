@@ -168,7 +168,7 @@ class TestMembershipCardAndStatement(PortalTestCase):
 
 	def member(self):
 		d = make_donor("m")
-		form = memberships.start_signup_for("Bronze", "عضو", d.email, d.mobile)
+		form = memberships.start_signup_for("Muazir", "عضو", d.email, d.mobile)
 		pid = self.fake.signup_payment(form["intent"], form["amount_halalas"])
 		result = memberships.complete_signup(pid)
 		self.assertTrue(result.ok, result.reason)
@@ -179,12 +179,12 @@ class TestMembershipCardAndStatement(PortalTestCase):
 		card = giving.membership_card(d.customer)
 		sub = frappe.get_doc("Subscription", r.subscription)
 		self.assertEqual(
-			(card.tier, card.status, card.label, card.live), ("Bronze", "Active", "برونزي", True)
+			(card.tier, card.status, card.label, card.live), ("Muazir", "Active", "المؤازر", True)
 		)
-		self.assertEqual(flt(card.last_charge.paid_amount), 50)
+		self.assertEqual(flt(card.last_charge.paid_amount), 1000)
 		self.assertEqual(getdate(card.next_charge), getdate(sub.current_invoice_start))
 		self.assertEqual(card.payment_method, "Visa •••• 1111 (12/30)")
-		self.assertNotIn("Bronze", [t.tier for t in card.tiers])
+		self.assertNotIn("Muazir", [t.tier for t in card.tiers])
 
 	def test_honorary_card_has_no_billing_fields(self):
 		d, _r = self.member()
@@ -199,7 +199,7 @@ class TestMembershipCardAndStatement(PortalTestCase):
 		d, _r = self.member()
 		make_bank_donation(self.project, 200, donor=d.customer)
 		s = giving.statement(d.customer, getdate(nowdate()).year)
-		self.assertEqual((flt(s.total_donations), flt(s.total_memberships), flt(s.total)), (200, 50, 250))
+		self.assertEqual((flt(s.total_donations), flt(s.total_memberships), flt(s.total)), (200, 1000, 1200))
 		html = giving.render_statement(s)
 		self.assertIn("كشف العطاء السنوي", html)
 		self.assertEqual(giving.statement(d.customer, 2001).total, 0)

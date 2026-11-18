@@ -1,42 +1,23 @@
 {% extends "ataa_hub/templates/ataa_base.html" %}
+{% from "ataa_hub/templates/includes/ataa_macros.html" import project_card %}
 
 {% block content %}
 <section class="ataa-hero">
-	<h1>تبرّعك يصل لمشروعه… وترى أثره فوراً</h1>
-	<p>كل ريال يُسجَّل على مشروعه لحظة الدفع، ونسبة الإنجاز تتحدث أمامك.</p>
+	<h1>تبرّعك يصل لمشروعه،<br>وأجره يبقى لك</h1>
+	<p>اختر المشروع والمبلغ، وأضف ما تشاء إلى السلة، وادفع مرة واحدة ببطاقتك أو بتحويل بنكي. يُسجَّل كل ريال على مشروعه لحظة الدفع.</p>
+	<button class="ataa-btn" type="button" data-ataa="quick">التبرع السريع</button>
 </section>
+
+<div class="ataa-section-head">
+	<div>
+		<h2>المشاريع</h2>
+		<p>{{ projects | length }} مشاريع تستقبل تبرعاتك الآن</p>
+	</div>
+</div>
 
 {% if projects %}
 <section class="ataa-grid">
-	{% for p in projects %}
-	<article class="ataa-card">
-		<a class="ataa-card__media" href="/donate/project?code={{ p.code | urlencode }}">
-			{% if p.image %}
-			<img src="{{ p.image | e }}" alt="{{ p.title | e }}" loading="lazy">
-			{% else %}
-			<div class="ataa-card__placeholder" aria-hidden="true"></div>
-			{% endif %}
-		</a>
-		<div class="ataa-card__body">
-			<h2 class="ataa-card__title">{{ p.title | e }}</h2>
-			{% if p.description %}<p class="ataa-card__desc">{{ p.description | e }}</p>{% endif %}
-
-			{% if p.target_label %}
-			<div class="ataa-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-				aria-valuenow="{{ p.progress_display }}">
-				<div class="ataa-progress__bar" style="width: {{ p.progress_display }}%"></div>
-			</div>
-			<div class="ataa-card__stats">
-				<span><strong>{{ p.collected_label }}</strong> ر.س من {{ p.target_label }}</span>
-				<span class="ataa-pill">{{ p.progress_label }}</span>
-			</div>
-			{% else %}
-			<div class="ataa-card__stats"><span>{{ _("صندوق عام غير مقيّد") }}</span></div>
-			{% endif %}
-			<a class="ataa-btn ataa-btn--primary ataa-btn--block" href="/donate/project?code={{ p.code | urlencode }}">تبرّع</a>
-		</div>
-	</article>
-	{% endfor %}
+	{% for p in projects %}{{ project_card(p) }}{% endfor %}
 </section>
 {% else %}
 <p class="ataa-empty">لا توجد مشاريع نشطة حالياً.</p>

@@ -1,0 +1,111 @@
+/* Ataa Hub — desk touches for staff: Thmanyah for Arabic text and the association's gold.
+   Only variables and our own classes; ERPNext/Frappe styles are not overridden otherwise. */
+@font-face { font-family: "Thmanyah Sans"; src: url("/assets/ataa_hub/fonts/thmanyahsans-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF; }
+@font-face { font-family: "Thmanyah Sans"; src: url("/assets/ataa_hub/fonts/thmanyahsans-Medium.woff2") format("woff2"); font-weight: 500 600; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF; }
+@font-face { font-family: "Thmanyah Sans"; src: url("/assets/ataa_hub/fonts/thmanyahsans-Bold.woff2") format("woff2"); font-weight: 700 900; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF; }
+
+/* Arabic glyphs come from Thmanyah, Latin and numbers stay in Frappe's Inter. */
+:root {
+	--font-stack: "Thmanyah Sans", "InterVariable", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+body, .page-container, .form-control, .btn, input, select, textarea {
+	font-family: var(--font-stack);
+}
+
+/* Project form: target / collected / available panel (public/js/project.js) */
+.ataa-progress-panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 10px; }
+.ataa-progress-panel .ataa-stat { border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 10px 12px; background: var(--card-bg); }
+.ataa-progress-panel .ataa-stat span { display: block; color: var(--text-muted); font-size: var(--text-sm); }
+.ataa-progress-panel .ataa-stat b { font-size: var(--text-xl); }
+.ataa-progress-track { height: 10px; border-radius: 999px; background: var(--gray-200); overflow: hidden; }
+.ataa-progress-track div { height: 100%; background: #ad8f52; border-radius: 999px; }
+.ataa-progress-caption { display: flex; justify-content: space-between; color: var(--text-muted); font-size: var(--text-sm); margin-top: 4px; }
+
+/* ---------------------------------------------------------------- Staff home (page ataa-home) */
+.ataa-dash { --gold: #ad8f52; --gold-soft: rgba(173, 143, 82, 0.12); --gold-dark: #7a6233; padding: 4px 0 40px; }
+.ataa-dash a { color: inherit; }
+.ataa-hero { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center;
+	padding: 22px 24px; border-radius: 16px; margin-bottom: 18px; color: #fff;
+	background: linear-gradient(120deg, #7a6233 0%, #ad8f52 60%, #c9ad74 100%); box-shadow: 0 10px 30px rgba(122, 98, 51, 0.18); }
+.ataa-hero h2 { margin: 0 0 4px; font-size: 24px; font-weight: 700; color: #fff; }
+.ataa-hero p { margin: 0; opacity: 0.88; }
+.ataa-hero-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.ataa-hero-actions .btn { border-radius: 999px; padding: 6px 16px; font-weight: 600; }
+.ataa-hero-actions .btn-default { background: rgba(255, 255, 255, 0.16); color: #fff; border: 1px solid rgba(255, 255, 255, 0.4); }
+.ataa-hero-actions .btn-default:hover { background: rgba(255, 255, 255, 0.28); }
+.btn.btn-primary.ataa-btn-gold, .ataa-dialog .modal-footer .btn-primary { background: #ad8f52; border-color: #ad8f52; color: #fff; }
+.btn.btn-primary.ataa-btn-gold:hover, .ataa-dialog .modal-footer .btn-primary:hover { background: #967a43; border-color: #967a43; color: #fff; }
+.ataa-hero-actions .btn.btn-primary.ataa-btn-gold { background: #fff; color: #7a6233; border: 0; }
+
+.ataa-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.ataa-kpi { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px 16px; position: relative; overflow: hidden; }
+.ataa-kpi::before { content: ""; position: absolute; inset-inline-start: 0; top: 0; bottom: 0; width: 4px; background: var(--gray-300); }
+.ataa-kpi.gold::before { background: var(--gold); }
+.ataa-kpi.warn::before { background: #d97706; }
+.ataa-kpi span { display: block; color: var(--text-muted); font-size: var(--text-sm); }
+.ataa-kpi b { display: block; font-size: 22px; font-weight: 700; margin-top: 4px; color: var(--heading-color, var(--text-color)); }
+.ataa-kpi small { color: var(--text-muted); }
+
+.ataa-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px 18px; margin-bottom: 18px; }
+.ataa-card > header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.ataa-card > header h3 { margin: 0; font-size: 17px; font-weight: 700; }
+.ataa-card > header a { color: var(--gold-dark); font-size: var(--text-sm); }
+.ataa-count { display: inline-block; min-width: 24px; padding: 0 8px; border-radius: 999px; background: var(--gold-soft); color: var(--gold-dark); font-size: 13px; text-align: center; }
+.ataa-grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 0 18px; }
+@media (max-width: 600px) { .ataa-grid-2 { grid-template-columns: 1fr; } }
+.ataa-empty { padding: 22px; text-align: center; color: var(--text-muted); background: var(--subtle-fg, var(--gray-50)); border-radius: 12px; }
+.ataa-muted { color: var(--text-muted); }
+
+.ataa-projects { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+.ataa-project { border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; background: var(--card-bg); transition: box-shadow .15s; }
+.ataa-project:hover { box-shadow: 0 8px 24px rgba(0, 0, 0, 0.07); }
+.ataa-pimg { height: 120px; background-size: cover; background-position: center; }
+.ataa-pimg-empty { display: flex; align-items: center; justify-content: center; font-size: 42px; font-weight: 700; color: var(--gold); background: var(--gold-soft); }
+.ataa-pbody { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.ataa-ptitle { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.ataa-ptitle b { font-size: 16px; margin-inline-end: 4px; }
+.ataa-chip { font-size: 11px; padding: 1px 8px; border-radius: 999px; background: var(--gray-100); color: var(--text-muted); }
+.ataa-chip.gold { background: var(--gold-soft); color: var(--gold-dark); }
+.ataa-target-row { display: flex; justify-content: space-between; font-size: var(--text-sm); color: var(--text-muted); margin-bottom: 4px; }
+.ataa-target-pct { text-align: end; font-weight: 700; color: var(--gold-dark); font-size: 13px; margin-top: 2px; }
+.ataa-bar { height: 8px; border-radius: 999px; background: var(--gray-200); overflow: hidden; }
+.ataa-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #c9ad74, #ad8f52); }
+.ataa-pstats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.ataa-pstats div { background: var(--subtle-fg, var(--gray-50)); border-radius: 10px; padding: 6px 8px; }
+.ataa-pstats span { display: block; font-size: 11px; color: var(--text-muted); }
+.ataa-pstats b { font-size: 14px; }
+.ataa-pstats small { display: block; font-size: 11px; color: var(--text-muted); }
+.ataa-pactions { display: flex; gap: 6px; margin-top: auto; }
+
+.ataa-list { display: flex; flex-direction: column; }
+.ataa-row { display: flex; align-items: center; gap: 12px; padding: 10px 4px; border-bottom: 1px solid var(--border-color); }
+.ataa-row:last-child { border-bottom: 0; }
+.ataa-row-alert { background: rgba(147, 51, 234, 0.06); border-radius: 10px; padding-inline: 10px; }
+.ataa-row-main { flex: 1; min-width: 0; }
+.ataa-row-title { font-weight: 600; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.ataa-row-title a { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.ataa-row-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.ataa-row-amount { font-weight: 700; white-space: nowrap; }
+.ataa-row-btns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.ataa-cus-progress { margin-top: 6px; max-width: 340px; }
+.ataa-cus-progress small { color: var(--text-muted); font-size: 11px; }
+
+.ataa-pill { font-size: 11px; padding: 1px 8px; border-radius: 999px; font-weight: 600; }
+.ataa-pill-gray { background: var(--gray-100); color: var(--gray-700); }
+.ataa-pill-orange { background: #fff4e5; color: #b45309; }
+.ataa-pill-blue { background: #e8f1fd; color: #1d4ed8; }
+.ataa-pill-teal { background: #e6f6f2; color: #0f766e; }
+.ataa-pill-red { background: #fdecec; color: #b91c1c; }
+.ataa-pill-green { background: #e8f6ec; color: #15803d; }
+.ataa-pill-purple { background: #f3e8ff; color: #7e22ce; }
+
+.ataa-table { overflow-x: auto; }
+.ataa-table table { width: 100%; border-collapse: collapse; }
+.ataa-table th { font-weight: 600; color: var(--text-muted); font-size: 12px; padding: 8px; border-bottom: 1px solid var(--border-color); text-align: start; }
+.ataa-table td { padding: 10px 8px; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+.ataa-td-bar { min-width: 140px; }
+.ataa-td-bar .ataa-bar { display: inline-block; width: 90px; vertical-align: middle; margin-inline-end: 6px; }
+
+.ataa-dialog .modal-header { border-bottom: 3px solid #ad8f52; }
+.ataa-dialog .btn-primary { background: #ad8f52; border-color: #ad8f52; }
+.ataa-available { padding: 8px 12px; border-radius: 10px; background: rgba(173, 143, 82, 0.12); color: #7a6233; margin-bottom: 8px; }

@@ -1,55 +1,58 @@
-// Membership sign-up: the server checks the request and returns Moyasar's form settings.
-// The first month is paid with "save card" on; the callback page verifies it with the secret key.
+// Membership sign-up: pick a tier card, the server checks the request and returns Moyasar's
+// form settings. The first year is paid with "save card" on; the callback page verifies it
+// with the secret key, and ERPNext's Subscription bills the next years.
 (function () {
 	const form = document.getElementById("membership-form");
 	if (!form) return;
+	const dialog = document.getElementById("join");
 	const $ = (id) => document.getElementById(id);
 	const value = (id) => ($(id) ? $(id).value.trim() : undefined);
 	const errorBox = $("form-error");
+	const tiers = window.ATAA.tiers || {};
 
 	function showError(message) {
 		errorBox.textContent = message;
 		errorBox.hidden = !message;
 	}
 
-	function serverMessage(body) {
-		try {
-			const messages = JSON.parse(body._server_messages || "[]");
-			if (messages.length) return JSON.parse(messages[0]).message.replace(/<[^>]+>/g, "");
-		} catch (e) {
-			/* fall through */
-		}
-		return body.exception || "تعذر إكمال الطلب، حاول مرة أخرى.";
+	function syncSummary() {
+		const t = form.querySelector('input[name="tier"]:checked');
+		const info = t && tiers[t.value];
+		$("tier-summary").textContent = info ? `عضوية ${info.label} — ${info.price} ر.س سنوياً، تتجدد تلقائياً كل عام.` : "";
 	}
+	form.addEventListener("change", syncSummary);
+
+	document.addEventListener("click", (e) => {
+		const join = e.target.closest("[data-join]");
+		if (!join) return;
+		const radio = form.querySelector(`input[name="tier"][value="${join.dataset.join}"]`);
+		if (radio) radio.checked = true;
+		syncSummary();
+		showError("");
+		dialog.showModal();
+	});
 
 	form.addEventListener("submit", async (e) => {
 		e.preventDefault();
 		showError("");
 		const tier = form.querySelector('input[name="tier"]:checked');
-		const mobile = (value("mobile") || "").replace(/\s/g, "");
 		if (!tier) return showError("اختر مستوى العضوية.");
-		if ($("mobile") && !/^\+9665\d{8}$/.test(mobile)) return showError("رقم الجوال بالصيغة +9665XXXXXXXX.");
+		let mobile;
+		if ($("mobile")) {
+			mobile = window.Ataa.saMobile(value("mobile"));
+			if (!mobile) return showError("رقم الجوال بالصيغة 05XXXXXXXX.");
+		}
 
 		const button = $("continue-btn");
 		button.disabled = true;
 		try {
-			const res = await fetch("/api/method/ataa_hub.portal.membership.start_signup", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Accept: "application/json",
-					"X-Frappe-CSRF-Token": window.ATAA.csrf_token,
-				},
-				body: JSON.stringify({
-					tier: tier.value,
-					full_name: value("full-name"),
-					email: value("email"),
-					mobile: mobile || undefined,
-				}),
+			const d = await window.Ataa.post("ataa_hub.portal.membership.start_signup", {
+				tier: tier.value,
+				full_name: value("full-name"),
+				email: value("email"),
+				mobile: mobile,
 			});
-			const body = await res.json();
-			if (!res.ok) throw new Error(serverMessage(body));
-			showPayment(body.message);
+			showPayment(d);
 		} catch (err) {
 			showError(err.message);
 		} finally {
@@ -60,7 +63,7 @@
 	function showPayment(d) {
 		form.hidden = true;
 		$("payment-step").hidden = false;
-		$("payment-summary").textContent = `${d.description} — ${d.amount.toLocaleString("ar-SA")} ر.س`;
+		$("payment-summary").textContent = `${d.description} — ${d.amount.toLocaleString("en-US")} ر.س`;
 		Moyasar.init({
 			element: ".mysr-form",
 			amount: d.amount_halalas,
@@ -77,4 +80,5 @@
 	}
 
 	$("back-btn").addEventListener("click", () => window.location.reload());
+	syncSummary();
 })();

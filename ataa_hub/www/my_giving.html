@@ -1,62 +1,78 @@
 {% extends "ataa_hub/templates/ataa_base.html" %}
+{% from "ataa_hub/templates/includes/member_card.html" import member_card %}
 
 {% block title %}{{ sections.get(section, "عضويتي") }} — عطاء{% endblock %}
 
 {% block content %}
 <section class="ataa-portal">
-	<header class="ataa-portal__head">
-		<h1>أهلاً {{ customer_name | e }}</h1>
+	<aside class="ataa-portal__side">
+		<div class="ataa-portal__who">
+			<span class="ataa-avatar">{{ (customer_name or "؟")[:1] | e }}</span>
+			<div><strong>{{ customer_name | e }}</strong><span>حساب المتبرع</span></div>
+		</div>
 		<nav class="ataa-tabs">
 			{% for key, label in sections.items() %}
 			<a href="/my-giving{% if key != 'overview' %}/{{ key }}{% endif %}" class="{% if key == section %}is-active{% endif %}">{{ label }}</a>
 			{% endfor %}
+			<a href="/donate">تبرّع الآن</a>
+			<a href="/logout">تسجيل الخروج</a>
 		</nav>
-	</header>
+	</aside>
 
+	<div class="ataa-portal__main">
+	<h1>{{ sections.get(section, "حسابي") }}</h1>
 	{% if section == "overview" %}
 	{# ------------------------------------------------ membership card first (PRD §7.7.1) #}
 	{% if card %}
-	<article class="ataa-member-card" style="--tier: {{ card.colour }}">
-		<div class="ataa-member-card__top">
-			<span class="ataa-member-card__tier">عضوية {{ card.label }}</span>
-			<span class="ataa-pill ataa-status--{{ (card.status or '') | lower | replace(' ', '-') }}">{{ _(card.status or "") }}</span>
+	<div class="ataa-member">
+		<div class="ataa-member-card">
+			{{ member_card(card) }}
 		</div>
-		{% if card.honorary %}
-		<p>عضو شرفي منذ {{ frappe.utils.formatdate(card.honorary_since, "dd-MM-yyyy") }}</p>
-		{% else %}
-		<dl class="ataa-member-card__facts">
-			{% if card.member_since %}<div><dt>عضو منذ</dt><dd>{{ frappe.utils.formatdate(card.member_since, "dd-MM-yyyy") }}</dd></div>{% endif %}
-			<div><dt>الاشتراك الشهري</dt><dd>{{ money(card.monthly_amount) }}</dd></div>
-			{% if card.last_charge %}<div><dt>آخر خصم</dt><dd>{{ frappe.utils.formatdate(card.last_charge.posting_date, "dd-MM-yyyy") }} — {{ money(card.last_charge.paid_amount) }}</dd></div>{% endif %}
-			{% if card.next_charge %}<div><dt>الخصم القادم</dt><dd>{{ frappe.utils.formatdate(card.next_charge, "dd-MM-yyyy") }}</dd></div>{% endif %}
-			{% if card.ends_on %}<div><dt>تنتهي العضوية</dt><dd>{{ frappe.utils.formatdate(card.ends_on, "dd-MM-yyyy") }}</dd></div>{% endif %}
-			<div><dt>البطاقة</dt><dd dir="ltr">{{ card.payment_method or "—" }}</dd></div>
-		</dl>
-		{% if card.live %}
-		<div class="ataa-member-card__actions">
-			<label class="ataa-inline">
-				<select id="new-tier">
+		<div class="ataa-panel">
+			<div class="ataa-section-head" style="margin-top:0">
+				<h2 style="margin:0">عضوية {{ card.label | e }}</h2>
+				{% set status_ar = {"Active": "فعّالة", "Payment Pending": "بانتظار الدفع", "Suspended": "موقوفة", "Cancelled": "ملغاة"} %}
+				<span class="ataa-pill">{{ status_ar.get(card.status, card.status or "") }}</span>
+			</div>
+			{% if card.honorary %}
+			<p>عضو شرفي منذ {{ frappe.utils.formatdate(card.honorary_since, "dd-MM-yyyy") }}</p>
+			{% else %}
+			<dl class="ataa-facts">
+				{% if card.number %}<div><dt>رقم العضوية</dt><dd dir="ltr">{{ card.number }}</dd></div>{% endif %}
+				{% if card.member_since %}<div><dt>عضو منذ</dt><dd>{{ frappe.utils.formatdate(card.member_since, "dd-MM-yyyy") }}</dd></div>{% endif %}
+				<div><dt>الاشتراك السنوي</dt><dd>{{ money(card.annual_amount) }}</dd></div>
+				{% if card.last_charge %}<div><dt>آخر خصم</dt><dd>{{ frappe.utils.formatdate(card.last_charge.posting_date, "dd-MM-yyyy") }}</dd></div>{% endif %}
+				{% if card.next_charge %}<div><dt>التجديد القادم</dt><dd>{{ frappe.utils.formatdate(card.next_charge, "dd-MM-yyyy") }}</dd></div>{% endif %}
+				{% if card.ends_on %}<div><dt>تنتهي العضوية</dt><dd>{{ frappe.utils.formatdate(card.ends_on, "dd-MM-yyyy") }}</dd></div>{% endif %}
+				<div><dt>بطاقة الدفع</dt><dd dir="ltr">{{ card.payment_method or "—" }}</dd></div>
+			</dl>
+			{% if card.benefits %}
+			<ul class="ataa-benefits">{% for b in card.benefits %}<li>{{ b | e }}</li>{% endfor %}</ul>
+			{% endif %}
+			{% if card.live %}
+			<div class="ataa-member__actions">
+				<select id="new-tier" aria-label="المستوى الجديد">
 					{% for t in card.tiers %}<option value="{{ t.tier }}">{{ t.label }} — {{ money(t.amount) }}</option>{% endfor %}
 				</select>
-				<button class="ataa-btn ataa-btn--ghost" data-action="change-tier">تغيير المستوى</button>
-			</label>
-			<a class="ataa-btn ataa-btn--ghost" href="/my-giving/card">تحديث البطاقة</a>
-			<button class="ataa-btn ataa-btn--ghost ataa-btn--danger" data-action="cancel">إلغاء العضوية</button>
+				<button class="ataa-btn ataa-btn--ghost ataa-btn--sm" data-action="change-tier">تغيير المستوى</button>
+				<a class="ataa-btn ataa-btn--ghost ataa-btn--sm" href="/my-giving/card">تحديث البطاقة</a>
+				<button class="ataa-btn ataa-btn--ghost ataa-btn--sm ataa-btn--danger" data-action="cancel">إلغاء العضوية</button>
+			</div>
+			<p class="ataa-error" id="action-error" role="alert" hidden></p>
+			{% endif %}
+			{% endif %}
 		</div>
-		<p class="ataa-error" id="action-error" role="alert" hidden></p>
-		{% endif %}
-		{% endif %}
-	</article>
+	</div>
 	{% else %}
-	<p class="ataa-notice">لست عضواً بعد. <a href="/membership">اشترك في العضوية الشهرية</a>.</p>
+	<p class="ataa-notice">لست عضواً بعد. <a href="/membership">تعرّف على العضويات السنوية</a>.</p>
 	{% endif %}
 
 	{% if impact %}
 	<h2>أثر عطائك</h2>
-	<div class="ataa-grid">
+	<div class="ataa-stats">
 		{% for p in impact %}
-		<div class="ataa-panel">
-			<strong>{{ p.project_title | e }}</strong>
+		<div class="ataa-stat">
+			<span>{{ p.project_title | e }}</span>
 			<div class="ataa-amount">{{ money(p.amount) }}</div>
 			{% if p.impact_units %}<div class="ataa-hint">{{ frappe.utils.fmt_money(p.impact_units, precision=0) }} {{ p.impact_unit_label or "" }}</div>{% endif %}
 		</div>
@@ -89,7 +105,7 @@
 
 	{% elif section == "gifts" %}
 	{% if rows %}
-	<table class="ataa-table">
+	<div class="ataa-table-wrap"><table class="ataa-table">
 		<tr><th>التاريخ</th><th>إلى</th><th>المناسبة</th><th>المشروع</th><th></th></tr>
 		{% for r in rows %}
 		<tr>
@@ -103,7 +119,7 @@
 			</td>
 		</tr>
 		{% endfor %}
-	</table>
+	</table></div>
 	{% else %}
 	<p class="ataa-empty">لا توجد إهداءات بعد.</p>
 	{% endif %}
@@ -116,10 +132,10 @@
 		<button class="ataa-btn ataa-btn--ghost">عرض</button>
 		<a class="ataa-btn ataa-btn--primary" href="/api/method/ataa_hub.portal.giving.download_statement?year={{ year }}">تحميل PDF</a>
 	</form>
-	<div class="ataa-grid">
-		<div class="ataa-panel"><span class="ataa-hint">التبرعات</span><div class="ataa-amount">{{ money(statement.total_donations) }}</div></div>
-		<div class="ataa-panel"><span class="ataa-hint">العضوية</span><div class="ataa-amount">{{ money(statement.total_memberships) }}</div></div>
-		<div class="ataa-panel"><span class="ataa-hint">المجموع {{ year }}</span><div class="ataa-amount">{{ money(statement.total) }}</div></div>
+	<div class="ataa-stats">
+		<div class="ataa-stat"><span>التبرعات</span><div class="ataa-amount">{{ money(statement.total_donations) }}</div></div>
+		<div class="ataa-stat"><span>العضوية</span><div class="ataa-amount">{{ money(statement.total_memberships) }}</div></div>
+		<div class="ataa-stat"><span>المجموع {{ year }}</span><div class="ataa-amount">{{ money(statement.total) }}</div></div>
 	</div>
 
 	{% elif section == "card" %}
@@ -150,9 +166,10 @@
 		<h1>لم تُحفظ البطاقة</h1>
 		<p>{{ card_result.message | e }}</p>
 		{% endif %}
-		<a class="ataa-btn ataa-btn--primary" href="/my-giving">عضويتي</a>
+		<a class="ataa-btn ataa-btn--primary" href="/my-giving">حسابي</a>
 	</section>
 	{% endif %}
+	</div>
 </section>
 {% endblock %}
 

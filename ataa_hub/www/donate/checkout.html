@@ -1,0 +1,113 @@
+{% extends "ataa_hub/templates/ataa_base.html" %}
+{% from "ataa_hub/templates/includes/ataa_macros.html" import pay_logos %}
+
+{% block title %}إكمال الدفع — عطاء{% endblock %}
+{% block cart_pill %}{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdn.moyasar.com/mpf/{{ moyasar_version }}/moyasar.css">
+<script src="https://cdn.moyasar.com/mpf/{{ moyasar_version }}/moyasar.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="ataa-steps"><a href="/donate/cart">السلة</a> ← <b>إكمال الدفع</b></div>
+
+<div class="ataa-cart" id="checkout" hidden>
+	<section class="ataa-stack">
+		<div class="ataa-panel">
+			<h2>بيانات المتبرع</h2>
+			<div class="ataa-row ataa-row--2">
+				<label class="ataa-field"><span>الاسم <small>(اختياري)</small></span>
+					<input id="donor-name" maxlength="140" autocomplete="name" value="{{ donor.name or '' }}"></label>
+				<label class="ataa-field"><span>الجوال <small>(لإرسال الإيصال)</small></span>
+					<input id="donor-mobile" dir="ltr" inputmode="tel" placeholder="05XXXXXXXX" autocomplete="tel" value="{{ donor.mobile or '' }}"></label>
+			</div>
+		</div>
+
+		<div class="ataa-accordion" id="methods">
+			<div class="ataa-acc is-open" data-method="card">
+				<button type="button" class="ataa-acc__head" aria-expanded="true">
+					<span class="ataa-radio" aria-hidden="true"></span>
+					البطاقة البنكية
+					{{ pay_logos() }}
+				</button>
+				<div class="ataa-acc__body">
+					{% if payments_ready %}
+					<div id="card-start">
+						<p class="ataa-hint">تُرسل بيانات البطاقة مباشرة إلى ميسّر ولا تمر بخوادمنا.</p>
+						<button type="button" class="ataa-btn ataa-btn--gold ataa-btn--block" id="card-btn">متابعة للدفع بالبطاقة</button>
+					</div>
+					<div id="card-form" hidden>
+						<div class="mysr-form"></div>
+						<p class="ataa-hint">بيئة اختبار: 4111 1111 1111 1111، أي تاريخ مستقبلي، وأي CVC.</p>
+					</div>
+					{% else %}
+					<p class="ataa-notice">بوابة الدفع غير مهيأة بعد. على مدير النظام إضافة مفاتيح ميسّر التجريبية من «إعدادات ميسّر».</p>
+					{% endif %}
+				</div>
+			</div>
+
+			<div class="ataa-acc" data-method="bank">
+				<button type="button" class="ataa-acc__head" aria-expanded="false">
+					<span class="ataa-radio" aria-hidden="true"></span>
+					التحويل البنكي
+				</button>
+				<div class="ataa-acc__body">
+					{% if bank_accounts %}
+					<p class="ataa-hint">حوّل المبلغ إلى أحد حسابات الجمعية، ثم أرفق الإيصال. يُعتمد تبرعك بعد مطابقة كشف البنك.</p>
+					<div class="ataa-banks" role="radiogroup" aria-label="حساب الجمعية">
+						{% for b in bank_accounts %}
+						<label class="ataa-bank">
+							<input type="radio" name="bank" value="{{ b.name | e }}" {% if loop.first %}checked{% endif %}>
+							<div>
+								<strong>{{ b.bank | e }}</strong>
+								<span class="ataa-hint">{{ b.account_name | e }}</span><br>
+								<code>{{ b.iban or b.bank_account_no }}</code>
+							</div>
+							<button type="button" class="ataa-copy" data-copy="{{ b.iban or b.bank_account_no }}">نسخ الآيبان</button>
+						</label>
+						{% endfor %}
+					</div>
+					<label class="ataa-drop" id="drop">
+						<input type="file" id="proof" accept=".pdf,.png,.jpg,.jpeg,.webp">
+						<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+						<span id="proof-label">ارفع إيصال التحويل</span>
+						<small>PDF أو صورة، حتى 5 ميجابايت</small>
+					</label>
+					<button type="button" class="ataa-btn ataa-btn--dark ataa-btn--block" id="bank-btn" style="margin-top:14px">قم بالتحويل</button>
+					{% else %}
+					<p class="ataa-notice">لا توجد حسابات بنكية للجمعية بعد.</p>
+					{% endif %}
+				</div>
+			</div>
+		</div>
+		<p class="ataa-error" id="pay-error" role="alert" hidden></p>
+	</section>
+
+	<aside class="ataa-panel ataa-summary-card">
+		<h2>ملخص التبرع</h2>
+		<dl id="summary-lines"></dl>
+		<div class="ataa-grand"><span>الإجمالي</span><span><strong id="sum-total">0</strong> <span class="ataa-sar">ر.س</span></span></div>
+		{{ pay_logos() }}
+		<p class="ataa-hint" style="margin-bottom:0">بالمتابعة توافق على صرف تبرعك في المشروع الذي اخترته.</p>
+	</aside>
+</div>
+
+<div class="ataa-result" id="checkout-empty" hidden>
+	<div class="ataa-result__icon" aria-hidden="true">!</div>
+	<h1>السلة فارغة</h1>
+	<a class="ataa-btn ataa-btn--gold" href="/donate">تصفّح المشاريع</a>
+</div>
+
+<section class="ataa-result ataa-result--ok" id="bank-done" hidden>
+	<div class="ataa-result__icon" aria-hidden="true">✓</div>
+	<h1>استلمنا إيصال التحويل</h1>
+	<p>سجّلنا تبرعك وسيُعتمد بعد مطابقة كشف البنك. ستصلك رسالة بالإيصال.</p>
+	<ul class="ataa-receipts" id="bank-refs"></ul>
+	<a class="ataa-btn ataa-btn--gold" href="/donate">العودة للمشاريع</a>
+</section>
+{% endblock %}
+
+{% block script %}
+<script src="/assets/ataa_hub/js/checkout.js?v=2"></script>
+{% endblock %}

@@ -1,18 +1,23 @@
 {% extends "ataa_hub/templates/ataa_base.html" %}
 
 {% block title %}{% if success %}شكراً لتبرعك{% else %}حالة التبرع{% endif %} — عطاء{% endblock %}
+{% block cart_pill %}{% endblock %}
 
 {% block content %}
 <section class="ataa-result {% if success %}ataa-result--ok{% else %}ataa-result--fail{% endif %}">
 	{% if success %}
 	<div class="ataa-result__icon" aria-hidden="true">✓</div>
 	<h1>جزاك الله خيراً، وصل تبرعك</h1>
-	<p>تم تسجيل تبرعك بمبلغ <strong>{{ amount_label }}</strong> لمشروع <strong>{{ project_title | e }}</strong>.</p>
-	<div class="ataa-receipt">
-		<span>رقم الإيصال</span>
-		<strong dir="ltr">{{ receipt }}</strong>
-	</div>
-	<a class="ataa-btn ataa-btn--primary" href="/donate/project?code={{ project_code | urlencode }}">شاهد أثر تبرعك</a>
+	<p>تم تسجيل تبرعك بمبلغ <strong>{{ amount_label }}</strong>{% if receipts | length == 1 %} لمشروع <strong>{{ receipts[0].project_title | e }}</strong>{% endif %}.</p>
+	<ul class="ataa-receipts">
+		{% for r in receipts %}
+		<li>
+			<span>{{ r.project_title | e }}{% if r.gift_url %} · <a href="{{ r.gift_url }}" target="_blank" rel="noopener">بطاقة الإهداء</a>{% endif %}</span>
+			<strong dir="ltr">{{ r.name }}</strong>
+		</li>
+		{% endfor %}
+	</ul>
+	<a class="ataa-btn ataa-btn--gold" href="/donate">تبرّع لمشروع آخر</a>
 
 	{% elif reason == "verification_unavailable" %}
 	<div class="ataa-result__icon" aria-hidden="true">…</div>
@@ -23,9 +28,13 @@
 	{% else %}
 	<div class="ataa-result__icon" aria-hidden="true">!</div>
 	<h1>لم تكتمل عملية الدفع</h1>
-	<p>لم يُخصم منك أي مبلغ لهذا التبرع. يمكنك المحاولة مرة أخرى.</p>
-	{% if receipt %}<p class="ataa-hint">مرجع التبرع: <span dir="ltr">{{ receipt }}</span></p>{% endif %}
-	<a class="ataa-btn ataa-btn--primary" href="{% if project_code %}/donate/project?code={{ project_code | urlencode }}{% else %}/donate{% endif %}">حاول مرة أخرى</a>
+	<p>لم يُخصم منك أي مبلغ. تبرعاتك ما زالت في السلة ويمكنك المحاولة مرة أخرى.</p>
+	{% if receipts %}<p class="ataa-hint">مرجع: <span dir="ltr">{{ receipts | map(attribute="name") | join(", ") }}</span></p>{% endif %}
+	<a class="ataa-btn ataa-btn--gold" href="/donate/checkout">حاول مرة أخرى</a>
 	{% endif %}
 </section>
+{% endblock %}
+
+{% block script %}
+{% if success %}<script>window.Ataa && window.Ataa.Cart.clear();</script>{% endif %}
 {% endblock %}

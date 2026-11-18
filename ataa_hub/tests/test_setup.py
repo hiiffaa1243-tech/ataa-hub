@@ -98,20 +98,20 @@ class TestFoundation(IntegrationTestCase):
 		self.assertTrue(frappe.db.exists("Customer Group", CUSTOMER_GROUP_DONORS))
 		self.assertTrue(frappe.db.exists("Item Group", ITEM_GROUP_MEMBERSHIPS))
 
-	def test_each_tier_has_item_and_monthly_plan(self):
+	def test_each_tier_has_item_and_annual_plan(self):
 		tiers = frappe.get_single("Membership Settings").tiers
 		self.assertEqual({t.tier for t in tiers}, set(PAID_TIERS))
 		for tier in tiers:
 			plan = frappe.get_doc("Subscription Plan", tier.subscription_plan)
 			self.assertEqual(plan.item, tier.item)
-			self.assertEqual((plan.billing_interval, plan.billing_interval_count), ("Month", 1))
-			self.assertEqual(plan.cost, tier.monthly_amount)
+			self.assertEqual((plan.billing_interval, plan.billing_interval_count), ("Year", 1))
+			self.assertEqual(plan.cost, tier.annual_amount)
 			self.assertEqual(frappe.db.get_value("Item", tier.item, "item_group"), ITEM_GROUP_MEMBERSHIPS)
 
 	def test_changing_tier_amount_updates_plan(self):
 		ms = frappe.get_single("Membership Settings")
-		gold = next(t for t in ms.tiers if t.tier == "Gold")
-		gold.monthly_amount = 275
+		gold = next(t for t in ms.tiers if t.tier == "Aoun")
+		gold.annual_amount = 275
 		ms.save()
 		self.assertEqual(frappe.db.get_value("Subscription Plan", gold.subscription_plan, "cost"), 275)
 

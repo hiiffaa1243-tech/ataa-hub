@@ -13,7 +13,8 @@ add_to_apps_screen = [
 		"name": "ataa_hub",
 		"logo": "/assets/ataa_hub/images/ataa-logo.svg",
 		"title": "Ataa Hub",
-		"route": "/app/project",
+		# Each staff user lands on their own workspace (User.default_workspace, set per role).
+		"route": "/desk/ataa-home",
 	}
 ]
 
@@ -28,6 +29,8 @@ fixtures = [
 	{"dt": "Property Setter", "filters": [["module", "=", "Ataa Hub"]]},
 	# Workspace number cards (type Custom → ataa_hub.dashboards)
 	{"dt": "Number Card", "filters": [["module", "=", "Ataa Hub"]]},
+	# Workspace charts (doctype charts + the "target vs collected" custom source)
+	{"dt": "Dashboard Chart", "filters": [["module", "=", "Ataa Hub"]]},
 	{
 		"dt": "Role",
 		"filters": [
@@ -96,7 +99,15 @@ scheduler_events = {
 }
 
 # Executive Director's "grant Honorary" button
-doctype_js = {"Customer": "public/js/customer.js"}
+doctype_js = {"Customer": "public/js/customer.js", "Project": "public/js/project.js"}
+
+# Desk: Thmanyah font and the association's gold, nothing structural.
+# Bundled and hashed by `bench build`, so browsers never keep a stale copy.
+app_include_css = "ataa_desk.bundle.css"
+app_include_js = "ataa_desk.bundle.js"
+
+# Staff see one product: no ERPNext tile on their apps screen, desk home = our sidebar.
+extend_bootinfo = "ataa_hub.boot.extend_bootinfo"
 
 # ---------------------------------------------------------------------------
 # Row-level security: a Project Manager only sees the projects they are
@@ -107,6 +118,7 @@ permission_query_conditions = {
 	"Donation": "ataa_hub.permissions.donation_query_conditions",
 	"Disbursement Request": "ataa_hub.permissions.disbursement_query_conditions",
 	"Fund Allocation": "ataa_hub.permissions.fund_allocation_query_conditions",
+	"Custody": "ataa_hub.permissions.custody_query_conditions",
 	# Portal donors (Website Users) see only their own records (PRD §7.7)
 	"Sales Invoice": "ataa_hub.permissions.sales_invoice_query_conditions",
 	"Payment Entry": "ataa_hub.permissions.payment_entry_query_conditions",
@@ -118,6 +130,7 @@ has_permission = {
 	"Donation": "ataa_hub.permissions.donation_has_permission",
 	"Disbursement Request": "ataa_hub.permissions.disbursement_has_permission",
 	"Fund Allocation": "ataa_hub.permissions.fund_allocation_has_permission",
+	"Custody": "ataa_hub.permissions.custody_has_permission",
 	"Sales Invoice": "ataa_hub.permissions.sales_invoice_has_permission",
 	"Payment Entry": "ataa_hub.permissions.payment_entry_has_permission",
 	"Donor Payment Method": "ataa_hub.permissions.payment_method_has_permission",
@@ -125,6 +138,13 @@ has_permission = {
 
 # Public donation page is the site's home page
 home_page = "donate"
+
+# Staff land on their dashboard after login (desk page ataa-home), donors on the site.
+role_home_page = {
+	"Executive Director": "desk/ataa-home",
+	"Donations Accountant": "desk/ataa-home",
+	"Project Manager": "desk/ataa-home",
+}
 
 # Pretty public URLs (PRD §7.6, §7.7, §8.2)
 website_route_rules = [
@@ -142,5 +162,6 @@ jinja = {
 		"ataa_hub.ataa_hub.doctype.donation.donation.receipt_verification_url",
 		"ataa_hub.ataa_hub.doctype.donation.donation.gift_url",
 		"ataa_hub.zatca.zatca_invoice_qr",
+		"ataa_hub.custody.invoice_data_uri",
 	]
 }

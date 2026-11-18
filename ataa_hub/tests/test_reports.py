@@ -117,21 +117,21 @@ class TestReports(ReportsTestCase):
 		with patch("ataa_hub.moyasar.get_client", return_value=fake):
 			n = frappe.generate_hash(length=8)
 			form = memberships.start_signup_for(
-				"Gold", "عضو تقرير", f"rep-{n}@ataa.test", "+9665" + "".join(str(int(c, 16) % 10) for c in n)
+				"Aoun", "عضو تقرير", f"rep-{n}@ataa.test", "+9665" + "".join(str(int(c, 16) % 10) for c in n)
 			)
 			self.assertTrue(
 				memberships.complete_signup(fake.signup_payment(form["intent"], form["amount_halalas"])).ok
 			)
 
 		_c, rows = run_report("Membership Report")
-		gold = next(r for r in rows if r["tier"] == "Gold")
+		gold = next(r for r in rows if r["tier"] == "Aoun")
 		self.assertGreaterEqual(gold["active"], 1)
 		self.assertGreaterEqual(gold["new"], 1)
-		self.assertEqual(flt(gold["mrr"]), (gold["active"] + gold["payment_pending"]) * 250)
+		self.assertEqual(flt(gold["arr"]), (gold["active"] + gold["payment_pending"]) * 5000)
 
 		frappe.set_user(ED)
 		self.assertGreaterEqual(dashboards.active_members()["value"], 1)
-		self.assertGreaterEqual(dashboards.monthly_recurring_revenue()["value"], 250)
+		self.assertGreaterEqual(dashboards.membership_revenue()["value"], 5000)
 
 
 class TestReconciliation(ReportsTestCase):
@@ -233,7 +233,7 @@ class TestDashboardsAndJobs(ReportsTestCase):
 		with patch("ataa_hub.moyasar.get_client", return_value=fake):
 			n = frappe.generate_hash(length=8)
 			form = memberships.start_signup_for(
-				"Bronze", "عضو أثر", f"imp-{n}@ataa.test", "+9665" + "".join(str(int(c, 16) % 10) for c in n)
+				"Muazir", "عضو أثر", f"imp-{n}@ataa.test", "+9665" + "".join(str(int(c, 16) % 10) for c in n)
 			)
 			memberships.complete_signup(fake.signup_payment(form["intent"], form["amount_halalas"]))
 		make_bank_donation(make_project(impact_unit_label="وجبة", impact_units_per_sar=1).name, 80)
@@ -268,20 +268,20 @@ class TestZatca(ReportsTestCase):
 		with patch("ataa_hub.moyasar.get_client", return_value=fake):
 			n = frappe.generate_hash(length=8)
 			form = memberships.start_signup_for(
-				"Bronze",
+				"Muazir",
 				"عضو ضريبة",
 				f"vat-{n}@ataa.test",
 				"+9665" + "".join(str(int(c, 16) % 10) for c in n),
 			)
 			r = memberships.complete_signup(fake.signup_payment(form["intent"], form["amount_halalas"]))
 		inv = frappe.get_doc("Sales Invoice", r.invoice)
-		# VAT included in the tier price: the member still pays 50, of which VAT is 6.52
-		self.assertEqual(flt(inv.grand_total), 50)
-		self.assertEqual(flt(inv.total_taxes_and_charges), 6.52)
+		# VAT included in the tier price: the member still pays 1,000, of which VAT is 130.43
+		self.assertEqual(flt(inv.grand_total), 1000)
+		self.assertEqual(flt(inv.total_taxes_and_charges), 130.43)
 		self.assertEqual(flt(inv.outstanding_amount), 0)
 
 		qr = zatca.decode_tlv(zatca.invoice_qr_text(inv))
-		self.assertEqual((qr[2], qr[4], qr[5]), (result["tax_id"], "50.00", "6.52"))
+		self.assertEqual((qr[2], qr[4], qr[5]), (result["tax_id"], "1000.00", "130.43"))
 		html = frappe.get_print("Sales Invoice", inv.name, "Ataa Membership Invoice")
 		self.assertIn("فاتورة ضريبية مبسطة", html)
 		self.assertIn("data:image/png;base64,", html)

@@ -113,7 +113,7 @@ class MembershipTestCase(IntegrationTestCase):
 		mobile = "+9665" + "".join(str(int(c, 16) % 10) for c in n)
 		return {"full_name": f"عضو تجريبي {n[:4]}", "email": f"member-{n}@ataa.test", "mobile": mobile}
 
-	def sign_up(self, tier="Bronze", **details):
+	def sign_up(self, tier="Muazir", **details):
 		details = details or self.donor_details()
 		form = memberships.start_signup_for(tier, **details)
 		payment_id = self.fake.signup_payment(form["intent"], form["amount_halalas"])
@@ -122,7 +122,7 @@ class MembershipTestCase(IntegrationTestCase):
 		result.payment_id = payment_id
 		return result
 
-	def member_with_due_invoice(self, tier="Bronze"):
+	def member_with_due_invoice(self, tier="Muazir"):
 		"""Signed-up member + their next month's invoice, already due."""
 		result = self.sign_up(tier)
 		sub = frappe.get_doc("Subscription", result.subscription)
@@ -152,12 +152,12 @@ class MembershipTestCase(IntegrationTestCase):
 class TestSignup(MembershipTestCase):
 	def test_signup_builds_the_whole_membership(self):
 		details = self.donor_details()
-		r = self.sign_up("Silver", **details)
+		r = self.sign_up("Musanid", **details)
 
 		c = frappe.get_doc("Customer", r.customer)
 		self.assertEqual(
 			(c.membership_tier, c.membership_status, c.membership_subscription),
-			("Silver", "Active", r.subscription),
+			("Musanid", "Active", r.subscription),
 		)
 		self.assertEqual(str(c.member_since), nowdate())
 
@@ -175,20 +175,20 @@ class TestSignup(MembershipTestCase):
 		self.assertEqual(
 			(inv.is_membership, inv.project, flt(inv.outstanding_amount)), (1, settings().general_project, 0)
 		)
-		self.assertEqual(flt(inv.grand_total), 100)
+		self.assertEqual(flt(inv.grand_total), 2000)
 		pe = frappe.get_doc("Payment Entry", r.payment_entry)
-		self.assertEqual((pe.is_membership, pe.reference_no, flt(pe.paid_amount)), (1, r.payment_id, 100))
+		self.assertEqual((pe.is_membership, pe.reference_no, flt(pe.paid_amount)), (1, r.payment_id, 2000))
 
 		# GL: membership income on GENERAL; clearing debited
 		income = frappe.db.get_single_value("Membership Settings", "membership_income_account")
 		self.assertIn(
-			(income, 0.0, 100.0, settings().general_project),
+			(income, 0.0, 2000.0, settings().general_project),
 			{(line.account, flt(line.debit), flt(line.credit), line.project) for line in gl_lines(r.invoice)},
 		)
 
 		# Portal user linked through the contact
 		self.assertEqual(memberships.customer_for_user(details["email"]), r.customer)
-		self.assertEqual(flt(c.lifetime_giving), 100)
+		self.assertEqual(flt(c.lifetime_giving), 2000)
 
 		attempt = self.attempts(r.invoice)[0]
 		self.assertEqual((attempt.status, attempt.payment_entry), ("Succeeded", r.payment_entry))
@@ -202,19 +202,19 @@ class TestSignup(MembershipTestCase):
 		self.assertEqual(frappe.db.count("Subscription", {"party": r.customer}), 1)
 
 	def test_wrong_amount_creates_nothing(self):
-		form = memberships.start_signup_for("Gold", **self.donor_details())
-		payment_id = self.fake.signup_payment(form["intent"], 100)  # 1 SAR instead of 250
+		form = memberships.start_signup_for("Aoun", **self.donor_details())
+		payment_id = self.fake.signup_payment(form["intent"], 100)  # 1 SAR instead of 5,000
 		result = memberships.complete_signup(payment_id)
 		self.assertEqual((result.ok, result.reason), (False, "amount_mismatch"))
 		self.assertFalse(frappe.db.exists("Payment Entry", {"reference_no": payment_id}))
 
 	def test_failed_payment_creates_nothing(self):
-		form = memberships.start_signup_for("Bronze", **self.donor_details())
+		form = memberships.start_signup_for("Muazir", **self.donor_details())
 		payment_id = self.fake.signup_payment(form["intent"], form["amount_halalas"], status="failed")
 		self.assertEqual(memberships.complete_signup(payment_id).reason, "failed")
 
 	def test_token_that_cannot_be_charged_is_not_saved(self):
-		form = memberships.start_signup_for("Bronze", **self.donor_details())
+		form = memberships.start_signup_for("Muazir", **self.donor_details())
 		token = self.fake.add_token(status="inactive")
 		payment_id = self.fake.signup_payment(form["intent"], form["amount_halalas"], token_id=token)
 		r = memberships.complete_signup(payment_id)
@@ -227,18 +227,18 @@ class TestSignup(MembershipTestCase):
 		details = self.donor_details()
 		self.sign_up(**details)
 		with self.assertRaises(frappe.ValidationError):
-			memberships.start_signup_for("Gold", **details)
+			memberships.start_signup_for("Aoun", **details)
 
 	def test_known_mobile_needs_its_own_email(self):
 		details = self.donor_details()
 		self.sign_up(**details)
 		with self.assertRaises(frappe.ValidationError):
-			memberships.start_signup_for("Gold", **{**details, "email": "someone-else@ataa.test"})
+			memberships.start_signup_for("Aoun", **{**details, "email": "someone-else@ataa.test"})
 
 
 class TestCharging(MembershipTestCase):
 	def test_due_invoice_is_charged_once(self):
-		m = self.member_with_due_invoice("Bronze")
+		m = self.member_with_due_invoice("Muazir")
 		charged = memberships.charge_due_invoices(today=m.due)
 		self.assertEqual(
 			len(
@@ -255,14 +255,14 @@ class TestCharging(MembershipTestCase):
 		self.assertEqual((attempt.status, attempt.attempt_no), ("Succeeded", 1))
 		self.assertEqual(flt(frappe.db.get_value("Sales Invoice", m.invoice, "outstanding_amount")), 0)
 		charge = next(c for c in self.fake.charges if c["metadata"]["invoice"] == m.invoice)
-		self.assertEqual(charge["amount"], 5000)
+		self.assertEqual(charge["amount"], 100000)  # 1,000 SAR in halalas
 		card = frappe.get_doc("Donor Payment Method", {"customer": m.customer})
 		self.assertEqual(charge["token"], card.token())
 
 		# Running the job again (or twice the same day) never charges again
 		memberships.charge_due_invoices(today=m.due)
 		self.assertEqual(len(self.attempts(m.invoice)), 1)
-		self.assertEqual(flt(frappe.db.get_value("Customer", m.customer, "lifetime_giving")), 100)
+		self.assertEqual(flt(frappe.db.get_value("Customer", m.customer, "lifetime_giving")), 2000)
 
 	def test_not_due_yet_is_not_charged(self):
 		m = self.member_with_due_invoice()
@@ -320,7 +320,7 @@ class TestCharging(MembershipTestCase):
 		[attempt] = self.attempts(m.invoice)
 		given_id = frappe.db.get_value("Membership Charge Attempt", attempt.name, "moyasar_payment_id")
 		# The money was actually taken at Moyasar
-		self.fake.payments[given_id] = {"id": given_id, "status": "paid", "amount": 5000, "currency": "SAR"}
+		self.fake.payments[given_id] = {"id": given_id, "status": "paid", "amount": 100000, "currency": "SAR"}
 
 		memberships.resolve_stale_attempts(now=frappe.utils.add_to_date(None, hours=1))
 		[attempt] = self.attempts(m.invoice)
@@ -372,14 +372,14 @@ class TestSelfService(MembershipTestCase):
 		self.assertEqual(flt(frappe.db.get_value("Sales Invoice", m.invoice, "outstanding_amount")), 0)
 
 	def test_change_tier_applies_to_next_invoice(self):
-		r = self.sign_up("Bronze")
-		memberships.change_tier(r.customer, "Gold")
+		r = self.sign_up("Muazir")
+		memberships.change_tier(r.customer, "Aoun")
 		sub = frappe.get_doc("Subscription", r.subscription)
-		self.assertEqual(sub.plans[0].plan, "Gold Monthly")
-		self.assertEqual(frappe.db.get_value("Customer", r.customer, "membership_tier"), "Gold")
+		self.assertEqual(sub.plans[0].plan, "Aoun Annual")
+		self.assertEqual(frappe.db.get_value("Customer", r.customer, "membership_tier"), "Aoun")
 		self.assertEqual(
-			flt(frappe.db.get_value("Sales Invoice", r.invoice, "grand_total")), 50
-		)  # current month unchanged
+			flt(frappe.db.get_value("Sales Invoice", r.invoice, "grand_total")), 1000
+		)  # current year unchanged
 
 		sub.process(posting_date=sub.current_invoice_start)
 		next_invoice = frappe.get_all(
@@ -387,9 +387,9 @@ class TestSelfService(MembershipTestCase):
 			filters={"subscription": sub.name, "outstanding_amount": (">", 0)},
 			pluck="grand_total",
 		)
-		self.assertEqual([flt(x) for x in next_invoice], [250])
+		self.assertEqual([flt(x) for x in next_invoice], [5000])
 		with self.assertRaises(frappe.ValidationError):
-			memberships.change_tier(r.customer, "Gold")
+			memberships.change_tier(r.customer, "Aoun")
 
 	def test_cancel_keeps_member_until_paid_month_ends(self):
 		r = self.sign_up()
@@ -415,8 +415,8 @@ class TestSelfService(MembershipTestCase):
 		details = self.donor_details()
 		r = self.sign_up(**details)
 		frappe.set_user(details["email"])
-		portal.change_tier("Platinum")
-		self.assertEqual(frappe.db.get_value("Customer", r.customer, "membership_tier"), "Platinum")
+		portal.change_tier("Daem")
+		self.assertEqual(frappe.db.get_value("Customer", r.customer, "membership_tier"), "Daem")
 		frappe.set_user("Guest")
 		with self.assertRaises(frappe.PermissionError):
 			portal.cancel_membership()
@@ -426,7 +426,7 @@ class TestHonorary(MembershipTestCase):
 	def test_monthly_job_grants_honorary(self):
 		ms = frappe.get_single("Membership Settings")
 		threshold = flt(ms.honorary_threshold) or 10000
-		r = self.sign_up("Bronze")
+		r = self.sign_up("Muazir")
 		make_bank_donation(make_project().name, threshold, donor=r.customer)
 		self.assertGreaterEqual(
 			flt(frappe.db.get_value("Customer", r.customer, "lifetime_giving")), threshold

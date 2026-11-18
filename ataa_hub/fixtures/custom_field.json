@@ -250,10 +250,24 @@
   "fieldname": "membership_tier",
   "fieldtype": "Select",
   "label": "Membership Tier",
-  "options": "\nBronze\nSilver\nGold\nPlatinum\nHonorary",
+  "options": "\nMuazir\nMusanid\nAoun\nAdeed\nKareem\nDaem\nHonorary",
   "in_standard_filter": 1,
   "read_only": 1,
   "no_copy": 1
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Customer-membership_number",
+  "dt": "Customer",
+  "module": "Ataa Hub",
+  "insert_after": "membership_tier",
+  "fieldname": "membership_number",
+  "fieldtype": "Data",
+  "label": "Membership Number",
+  "unique": 1,
+  "read_only": 1,
+  "no_copy": 1,
+  "search_index": 1
  },
  {
   "doctype": "Custom Field",

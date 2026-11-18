@@ -1,0 +1,53 @@
+{% extends "ataa_hub/templates/ataa_base.html" %}
+
+{% block title %}سلة التبرعات — عطاء{% endblock %}
+{% block cart_pill %}{% endblock %}
+
+{% block content %}
+<div class="ataa-section-head">
+	<div>
+		<h2>سلة التبرعات</h2>
+		<p>راجع تبرعاتك قبل الدفع. تدفعها كلها مرة واحدة.</p>
+	</div>
+	<a href="/donate" class="ataa-btn ataa-btn--ghost ataa-btn--sm">أضف مشاريع أخرى</a>
+</div>
+
+<div class="ataa-cart" id="cart" hidden>
+	<section class="ataa-panel">
+		<div id="cart-lines"></div>
+	</section>
+	<aside class="ataa-panel ataa-summary-card">
+		<h2>ملخص التبرع</h2>
+		<dl>
+			<div><dt>عدد التبرعات</dt><dd id="sum-count">0</dd></div>
+			<div><dt>منها إهداءات</dt><dd id="sum-gifts">0</dd></div>
+		</dl>
+		<div class="ataa-grand"><span>الإجمالي</span><span><strong id="sum-total">0</strong> <span class="ataa-sar">ر.س</span></span></div>
+		<a class="ataa-btn ataa-btn--gold ataa-btn--block" href="/donate/checkout">إكمال الدفع ←</a>
+		<button type="button" class="ataa-btn ataa-btn--ghost ataa-btn--block ataa-btn--sm" id="clear-cart" style="margin-top:8px">إفراغ السلة</button>
+	</aside>
+</div>
+
+<div class="ataa-result" id="cart-empty" hidden>
+	<div class="ataa-result__icon" aria-hidden="true">
+		<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6.2"/><circle cx="10" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/></svg>
+	</div>
+	<h1>السلة فارغة</h1>
+	<p class="ataa-hint">اختر مشروعاً وأضف تبرعك إلى السلة.</p>
+	<a class="ataa-btn ataa-btn--gold" href="/donate">تصفّح المشاريع</a>
+</div>
+
+<section class="ataa-upsell" id="upsell" hidden>
+	<div class="ataa-section-head">
+		<div>
+			<h2>أكمل أجرك</h2>
+			<p>مشاريع أخرى يمكنك إضافتها بضغطة</p>
+		</div>
+	</div>
+	<div class="ataa-mini-grid" id="upsell-grid"></div>
+</section>
+{% endblock %}
+
+{% block script %}
+<script src="/assets/ataa_hub/js/cart.js?v=2"></script>
+{% endblock %}

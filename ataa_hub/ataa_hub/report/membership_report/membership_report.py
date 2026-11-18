@@ -1,7 +1,7 @@
-"""Membership Report (PRD §10): members per tier and status, MRR, new, cancelled and churn.
+"""Membership Report (PRD §10): members per tier and status, ARR, new, cancelled and churn.
 
-Statuses are the derived Customer.membership_status (M5); MRR counts members who
-are still billed (Active + Payment Pending) at the tier's monthly amount.
+Statuses are the derived Customer.membership_status (M5); ARR (annual recurring revenue)
+counts members who are still billed (Active + Payment Pending) at the tier's annual amount.
 """
 
 import frappe
@@ -18,11 +18,11 @@ def execute(filters=None):
 	from_date = getdate(f.from_date or get_first_day(nowdate()))
 	to_date = getdate(f.to_date or nowdate())
 	amounts = {
-		r.tier: flt(r.monthly_amount)
+		r.tier: flt(r.annual_amount)
 		for r in frappe.get_all(
 			"Membership Tier",
 			filters={"parenttype": "Membership Settings"},
-			fields=["tier", "monthly_amount"],
+			fields=["tier", "annual_amount"],
 		)
 	}
 
@@ -42,7 +42,7 @@ def execute(filters=None):
 	rows = []
 	for tier in (*PAID_TIERS, TIER_HONORARY):
 		group = [m for m in members if m.membership_tier == tier]
-		row = {"tier": tier, "monthly_amount": amounts.get(tier, 0)}
+		row = {"tier": tier, "annual_amount": amounts.get(tier, 0)}
 		for status in STATUSES:
 			row[frappe.scrub(status)] = sum(1 for m in group if m.membership_status == status)
 		row["new"] = sum(
@@ -50,14 +50,14 @@ def execute(filters=None):
 		)
 		row["cancelled_in_period"] = sum(1 for m in group if m.membership_subscription in cancelled_in_period)
 		billed = row["active"] + row["payment_pending"]
-		row["mrr"] = billed * row["monthly_amount"] if tier != TIER_HONORARY else 0
+		row["arr"] = billed * row["annual_amount"] if tier != TIER_HONORARY else 0
 		base = billed + row["suspended"] + row["cancelled_in_period"]
 		row["churn"] = round(row["cancelled_in_period"] / base * 100, 1) if base else 0
 		rows.append(row)
 
 	columns = [
 		{"fieldname": "tier", "label": _("Tier"), "fieldtype": "Data", "width": 110},
-		{"fieldname": "monthly_amount", "label": _("Monthly (SAR)"), "fieldtype": "Currency", "width": 110},
+		{"fieldname": "annual_amount", "label": _("Annual (SAR)"), "fieldtype": "Currency", "width": 110},
 		{"fieldname": "active", "label": _("Active"), "fieldtype": "Int", "width": 80},
 		{"fieldname": "payment_pending", "label": _("Payment Pending"), "fieldtype": "Int", "width": 120},
 		{"fieldname": "suspended", "label": _("Suspended"), "fieldtype": "Int", "width": 100},
@@ -69,13 +69,13 @@ def execute(filters=None):
 			"fieldtype": "Int",
 			"width": 140,
 		},
-		{"fieldname": "mrr", "label": _("MRR (SAR)"), "fieldtype": "Currency", "width": 120},
+		{"fieldname": "arr", "label": _("ARR (SAR)"), "fieldtype": "Currency", "width": 120},
 		{"fieldname": "churn", "label": _("Churn %"), "fieldtype": "Percent", "width": 90},
 	]
 	summary = [
 		{
-			"label": _("MRR"),
-			"value": sum(r["mrr"] for r in rows),
+			"label": _("ARR"),
+			"value": sum(r["arr"] for r in rows),
 			"datatype": "Currency",
 			"indicator": "Green",
 		},

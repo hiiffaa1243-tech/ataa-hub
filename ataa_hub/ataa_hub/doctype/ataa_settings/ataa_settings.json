@@ -16,6 +16,7 @@
   "fund_transfers_in_account",
   "fund_transfers_out_account",
   "main_bank_account",
+  "custody_account",
   "channels_section",
   "mop_website",
   "mop_online_store",
@@ -103,6 +104,13 @@
    "description": "Bank account of the company"
   },
   {
+   "fieldname": "custody_account",
+   "fieldtype": "Link",
+   "label": "Staff Custody Account",
+   "options": "Account",
+   "description": "Asset account holding cash advanced to staff (عهد) until they settle it with invoices."
+  },
+  {
    "fieldname": "channels_section",
    "fieldtype": "Section Break",
    "label": "Mode of Payment per Channel"
@@ -143,7 +151,7 @@
   }
  ],
  "links": [],
- "modified": "2026-11-17 22:00:00.000000",
+ "modified": "2026-11-18 16:00:00.000000",
  "modified_by": "Administrator",
  "module": "Ataa Hub",
  "name": "Ataa Settings",
